@@ -143,10 +143,10 @@ void Helm_Calibration(void)
 
             switch (i)
             {
-                case 0: pin_state = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0); break;
-                case 1: pin_state = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1); break;
-                case 2: pin_state = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2); break;
-                default: pin_state = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3); break;
+                case 0: pin_state = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_4); break;
+                case 1: pin_state = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_5); break;
+                case 2: pin_state = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_3); break;
+                default: pin_state = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_1); break;
             }
 
             if (pin_state == GPIO_PIN_SET)

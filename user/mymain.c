@@ -113,11 +113,11 @@ void My_init(void)
     FDCAN2_Init();
     FDCAN3_Init();
 
-    HAL_UARTEx_ReceiveToIdle_DMA(&huart1, receive_handle, sizeof(receive_handle));
-    __HAL_DMA_DISABLE_IT(huart1.hdmarx, DMA_IT_HT);
-
-    HAL_UARTEx_ReceiveToIdle_DMA(&huart2, receive_dt35, sizeof(receive_dt35));
+    HAL_UARTEx_ReceiveToIdle_DMA(&huart2, receive_handle, sizeof(receive_handle));
     __HAL_DMA_DISABLE_IT(huart2.hdmarx, DMA_IT_HT);
+
+    HAL_UARTEx_ReceiveToIdle_DMA(&huart4, receive_dt35, sizeof(receive_dt35));
+    __HAL_DMA_DISABLE_IT(huart4.hdmarx, DMA_IT_HT);
 
     HAL_UARTEx_ReceiveToIdle_DMA(&huart7, receive_imu, sizeof(receive_imu));
     __HAL_DMA_DISABLE_IT(huart7.hdmarx, DMA_IT_HT);
@@ -142,24 +142,24 @@ void Test_HelmMotor(void)
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
 
-    if (huart->Instance == USART1)
+    if (huart->Instance == USART2)
     {
         if (Size == sizeof(receive_handle))
         {
             osMessageQueuePut(handleQueueHandle, receive_handle, 0U, 0U);
         }
-        HAL_UARTEx_ReceiveToIdle_DMA(&huart1, receive_handle, sizeof(receive_handle));
-        __HAL_DMA_DISABLE_IT(huart1.hdmarx, DMA_IT_HT);
+        HAL_UARTEx_ReceiveToIdle_DMA(&huart2, receive_handle, sizeof(receive_handle));
+        __HAL_DMA_DISABLE_IT(huart2.hdmarx, DMA_IT_HT);
     }
 
-    if (huart->Instance == USART2)
+    if (huart->Instance == UART4)
     {
         if (Size == sizeof(receive_dt35))
         {
             osMessageQueuePut(dt35QueueHandle, receive_dt35, 0U, 0U);
         }
-        HAL_UARTEx_ReceiveToIdle_DMA(&huart2, receive_dt35, sizeof(receive_dt35));
-        __HAL_DMA_DISABLE_IT(huart2.hdmarx, DMA_IT_HT);
+        HAL_UARTEx_ReceiveToIdle_DMA(&huart4, receive_dt35, sizeof(receive_dt35));
+        __HAL_DMA_DISABLE_IT(huart4.hdmarx, DMA_IT_HT);
     }
 
     if (huart->Instance == UART7)
@@ -175,16 +175,16 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
-    if (huart->Instance == USART1)
-    {
-        HAL_UARTEx_ReceiveToIdle_DMA(&huart1, receive_handle, sizeof(receive_handle));
-        __HAL_DMA_DISABLE_IT(huart1.hdmarx, DMA_IT_HT);
-    }
-
     if (huart->Instance == USART2)
     {
-        HAL_UARTEx_ReceiveToIdle_DMA(&huart2, receive_dt35, sizeof(receive_handle));
+        HAL_UARTEx_ReceiveToIdle_DMA(&huart2, receive_handle, sizeof(receive_handle));
         __HAL_DMA_DISABLE_IT(huart2.hdmarx, DMA_IT_HT);
+    }
+
+    if (huart->Instance == UART4)
+    {
+        HAL_UARTEx_ReceiveToIdle_DMA(&huart4, receive_dt35, sizeof(receive_dt35));
+        __HAL_DMA_DISABLE_IT(huart4.hdmarx, DMA_IT_HT);
     }
 
     if (huart->Instance == UART7)

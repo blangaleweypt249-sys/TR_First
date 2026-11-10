@@ -104,11 +104,17 @@ int main(void)
   MX_DMA_Init();
   MX_FDCAN1_Init();
   MX_UART7_Init();
-  MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_FDCAN2_Init();
   MX_FDCAN3_Init();
   MX_SPI6_Init();
+  MX_UART4_Init();
+  MX_UART8_Init();
+  MX_USART3_UART_Init();
+  MX_USART1_UART_Init();
+  MX_UART9_Init();
+  MX_UART5_Init();
+  MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
   My_init();//通信基础初始化
             //机构位置初始化

@@ -59,6 +59,14 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define SPI6_NSS_Pin GPIO_PIN_4
 #define SPI6_NSS_GPIO_Port GPIOA
+#define four_helm_Pin GPIO_PIN_1
+#define four_helm_GPIO_Port GPIOD
+#define three_helm_Pin GPIO_PIN_3
+#define three_helm_GPIO_Port GPIOD
+#define one_helm_Pin GPIO_PIN_4
+#define one_helm_GPIO_Port GPIOD
+#define two_helm_Pin GPIO_PIN_5
+#define two_helm_GPIO_Port GPIOD
 
 /* USER CODE BEGIN Private defines */
 

@@ -1,8 +1,9 @@
 #include "remote_link.h"
 #include "usart.h"
-#include "a39_config.h"
 
-static uint8_t rx_byte;
+#define REMOTE_RX_DMA_SIZE 128U
+static uint8_t rx_dma[REMOTE_RX_DMA_SIZE];
+static uint16_t rx_pos;
 static uint8_t rx_index;
 static volatile uint8_t received_bits;
 static volatile uint8_t received_valid;
@@ -41,35 +42,34 @@ void RemoteLink_Init(void)
     HAL_GPIO_Init(GPIOA, &gpio);
     gpio.Pin = GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7 | GPIO_PIN_8 | GPIO_PIN_9;
     HAL_GPIO_Init(GPIOB, &gpio);
-    HAL_GPIO_WritePin(LORA_M0_GPIO_Port, LORA_M0_Pin, A39_MD0_LEVEL);
-    HAL_GPIO_WritePin(LORA_M1_GPIO_Port, LORA_M1_Pin, A39_MD1_LEVEL);
-    rx_index = 0U; received_valid = 0U; received_bits = 0x0FU;
+    /* E34-2G4H27D: M0=0, M1=0, normal transparent transmission. */
+    HAL_GPIO_WritePin(LORA_M0_GPIO_Port, LORA_M0_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LORA_M1_GPIO_Port, LORA_M1_Pin, GPIO_PIN_RESET);
+    rx_pos = rx_index = 0U; received_valid = 0U; received_bits = 0x0FU;
     RemoteLink_OutputEmergency(0x0FU);
-    HAL_Delay(A39_MODE_SETTLE_MS);
-    if (HAL_UART_Receive_IT(&huart3, &rx_byte, 1U) != HAL_OK) Error_Handler();
+    HAL_Delay(10U);
+    (void)HAL_UART_Receive_DMA(&huart3, rx_dma, REMOTE_RX_DMA_SIZE);
+    if (huart3.hdmarx != NULL) __HAL_DMA_DISABLE_IT(huart3.hdmarx, DMA_IT_HT);
 }
 
 void RemoteLink_Process(void)
 {
     uint8_t bits;
+    uint16_t write = (uint16_t)(REMOTE_RX_DMA_SIZE - __HAL_DMA_GET_COUNTER(huart3.hdmarx));
+    while (rx_pos != write) {
+        RemoteLink_ParseByte(rx_dma[rx_pos]);
+        rx_pos = (uint16_t)((rx_pos + 1U) % REMOTE_RX_DMA_SIZE);
+    }
     uint32_t primask = __get_PRIMASK();
     __disable_irq(); bits = (received_valid == 0U) ? 0x0FU : received_bits;
     RemoteLink_OutputEmergency(bits); __set_PRIMASK(primask);
-}
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-    if (huart->Instance == USART3) {
-        RemoteLink_ParseByte(rx_byte);
-        if (HAL_UART_Receive_IT(huart, &rx_byte, 1U) != HAL_OK) Error_Handler();
-    }
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == USART3) {
         (void)HAL_UART_AbortReceive(huart);
-        rx_index = 0U;
-        if (HAL_UART_Receive_IT(huart, &rx_byte, 1U) != HAL_OK) Error_Handler();
+        rx_pos = 0U;
+        (void)HAL_UART_Receive_DMA(&huart3, rx_dma, REMOTE_RX_DMA_SIZE);
     }
 }

@@ -1,0 +1,46 @@
+{
+    "configurations": [
+        {
+            "name": "STM32H723 (Keil ARMClang)",
+            "compilerPath": "D:/keil5/core/ARM/ARMCLANG/Bin/armclang.exe",
+            "intelliSenseMode": "windows-clang-arm",
+            "cStandard": "c99",
+            "includePath": [
+                "${workspaceFolder}/Core/Inc",
+                "${workspaceFolder}/Drivers/STM32H7xx_HAL_Driver/Inc",
+                "${workspaceFolder}/Drivers/STM32H7xx_HAL_Driver/Inc/Legacy",
+                "${workspaceFolder}/Drivers/CMSIS/Include",
+                "${workspaceFolder}/Drivers/CMSIS/Device/ST/STM32H7xx/Include",
+                "${workspaceFolder}/Drivers/CMSIS/RTOS2/Include",
+                "${workspaceFolder}/Middlewares/Third_Party/FreeRTOS/Source/include",
+                "${workspaceFolder}/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2",
+                "${workspaceFolder}/Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F",
+                "${workspaceFolder}/user"
+            ],
+            "defines": [
+                "STM32H723xx",
+                "USE_HAL_DRIVER",
+                "USE_PWR_LDO_SUPPLY",
+                "__UVISION_VERSION=537"
+            ],
+            "compilerArgs": [
+                "--target=arm-arm-none-eabi",
+                "-mcpu=cortex-m7",
+                "-mfpu=fpv5-d16",
+                "-mfloat-abi=hard",
+                "-funsigned-char",
+                "-fshort-enums"
+            ],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/Core/Inc",
+                    "${workspaceFolder}/Drivers",
+                    "${workspaceFolder}/Middlewares",
+                    "${workspaceFolder}/user"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            }
+        }
+    ],
+    "version": 4
+}

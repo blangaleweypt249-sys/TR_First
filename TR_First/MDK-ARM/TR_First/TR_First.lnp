@@ -50,6 +50,7 @@
 "tr_first\path.o"
 "tr_first\helm_chassis.o"
 "tr_first\handle.o"
+"tr_first\leg.o"
 "tr_first\bsp_can.o"
 "tr_first\w25q128.o"
 "tr_first\imu_100a.o"

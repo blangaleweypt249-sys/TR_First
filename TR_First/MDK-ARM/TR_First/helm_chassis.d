@@ -41,6 +41,6 @@ tr_first/helm_chassis.o: ..\user\helm_chassis.c ..\user\helm_chassis.h \
   ..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_uart_ex.h \
   ..\user\DJI.h ..\Core\Inc\fdcan.h ..\user\vesc.h \
   ..\user\Interpolation.h ..\user\WpLib.h ..\user\mymain.h \
-  ..\Core\Inc\usart.h ..\Core\Inc\spi.h ..\user\bsp_can.h \
+  ..\Core\Inc\usart.h ..\Core\Inc\spi.h ..\user\bsp_can.h ..\user\Leg.h \
   ..\Drivers\CMSIS\RTOS2\Include\cmsis_os2.h ..\user\Handle.h \
   ..\user\imu_100A.h ..\user\dt35.h ..\user\STP_23L.h ..\user\w25q128.h

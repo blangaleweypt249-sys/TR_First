@@ -4,6 +4,7 @@
 #include "main.h"
 #include "fdcan.h"
 #include "helm_chassis.h"
+#include "Leg.h"
 
 void FDCAN1_Init(void);
 void FDCAN2_Init(void);

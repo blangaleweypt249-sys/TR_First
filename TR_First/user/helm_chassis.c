@@ -47,12 +47,12 @@ float wrap_angle(float angle)
 
 void Min_Angle(float *delta, float *speed)
 {
-    if (*delta > PI / 2.0f)
+    if (*delta > ((PI / 2.0f)+(2.0f * PI / 180.0f)))
     {
         *delta -= PI;
         *speed *= -1.0f;
     }
-    else if (*delta < -PI / 2.0f)
+    else if (*delta < -((PI / 2.0f)+(2.0f * PI / 180.0f)))
     {
         *delta += PI;
         *speed *= -1.0f;
@@ -90,16 +90,16 @@ float CosKspeed(float set_angle, float actual_angle)
 
 void helm_calculate(Speed *body_speed, Helm_chassis *helm_chassises)
 {
-    if (body_speed->vx == 0.0f && body_speed->vy == 0.0f && fabsf(body_speed->vw) < 0.05f)
+    if (body_speed->vx == 0.0f && body_speed->vy == 0.0f && fabsf(body_speed->vw) < 0.01f)
     {
         for (uint8_t i = 0; i < 4; i++)
         {
             helm_chassises->helm_speed[i] = 0.0f;
         }
-        helm_chassises->helm_angle[0] = -atan2f(+half_dy, -half_dx);
-        helm_chassises->helm_angle[1] = -atan2f(+half_dy, +half_dx);
-        helm_chassises->helm_angle[2] = -atan2f(-half_dy, +half_dx);
-        helm_chassises->helm_angle[3] = -atan2f(-half_dy, -half_dx);
+        helm_chassises->helm_angle[0] = atan2f(+half_dy, -half_dx);
+        helm_chassises->helm_angle[1] = atan2f(+half_dy, +half_dx);
+        helm_chassises->helm_angle[2] = atan2f(-half_dy, +half_dx);
+        helm_chassises->helm_angle[3] = atan2f(-half_dy, -half_dx);
     }
     else
     {
@@ -158,7 +158,7 @@ void Helm_Calibration(void)
             }
             else
             {
-                DJI_Speed(&helm_motor[i], 15.0f);
+                DJI_Speed(&helm_motor[i], 20.0f);
             }
         }
 
@@ -171,13 +171,14 @@ void Helm_Calibration(void)
         osDelay(1);
     }
 
+    osDelay(10);
     // 四个舵轮回零
-    for (uint16_t count = 0; count < 200; count++)
+    for (uint16_t count = 0; count < 50; count++)
     {
         for (uint8_t i = 0; i < 4; i++)
             DJI_ToZero(&helm_motor[i]);
 
-        osDelay(1);
+        osDelay(5);
     }
 
     ready_target_initialized = 1U;
@@ -222,7 +223,7 @@ void World_to_body(Speed *world_speed, Speed *body_speed, float imu_angle)
 
     body_speed->vx = world_speed->vx * cos_angle + world_speed->vy * sin_angle;
     body_speed->vy = -world_speed->vx * sin_angle + world_speed->vy * cos_angle;
-    body_speed->vw = -world_speed->vw;
+    body_speed->vw = world_speed->vw;
 }
 
 void car_angle_maintain(Speed *world_speed, Angle *angle)

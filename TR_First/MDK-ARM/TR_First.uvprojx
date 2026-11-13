@@ -848,6 +848,16 @@
               <FileType>5</FileType>
               <FilePath>..\user\Handle.h</FilePath>
             </File>
+            <File>
+              <FileName>Leg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\Leg.c</FilePath>
+            </File>
+            <File>
+              <FileName>Leg.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\user\Leg.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -13,6 +13,7 @@
 #include "vesc.h"
 #include "DJI.h"
 #include "helm_chassis.h"
+#include "Leg.h"
 #include "imu_100A.h"
 #include "dt35.h"
 #include "STP_23L.h"

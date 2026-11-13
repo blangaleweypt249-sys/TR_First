@@ -75,7 +75,7 @@ static void DJI_Send(DJI_Motor *motor, DJI_Mode mode, float value)
         motor->target_position = value;
     }
 
-    packet_data.f = value;
+    packet_data.f = (mode == DJI_SPEED || mode == DJI_POSITION) ? -value : value;
     data[0] = motor->motor_id;
     for (uint8_t i = 0; i < 4; i++)
     {
@@ -110,7 +110,9 @@ void DJI_Analysisdata(DJI_Motor *motor, FDCAN_RxHeaderTypeDef *rx_header, uint8_
     }
 
     memcpy(&motor->Feedback_angle, &data[1], sizeof(motor->Feedback_angle));
-    motor->Feedback_speed = (float)(int16_t)(((uint16_t)data[5] << 8) | data[6]);
+    // 主控正方向与从机相反，反馈也取反
+    motor->Feedback_angle = -motor->Feedback_angle;
+    motor->Feedback_speed = -(float)(int16_t)(((uint16_t)data[5] << 8) | data[6]);
     motor->status = data[7];
 
     if (motor->num[0] >= 1000)

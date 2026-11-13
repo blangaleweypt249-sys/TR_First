@@ -144,6 +144,14 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
             }
             else if(hfdcan == &hfdcan2)
             {
+                if (rx_header.IdType == FDCAN_STANDARD_ID)
+                {
+                    DJI_Analysisdata(&leg_Left, &rx_header, rx_data);
+                    DJI_Analysisdata(&leg_Right, &rx_header, rx_data);
+
+                    DJI_Analysisdata(&leg_Left_2006, &rx_header, rx_data);
+                    DJI_Analysisdata(&leg_Right_2006, &rx_header, rx_data);
+                }
 
             }
             else if(hfdcan == &hfdcan3)

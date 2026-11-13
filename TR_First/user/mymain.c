@@ -13,6 +13,11 @@ Helm_chassis helm_chassis;
 float speed_k = 0.001f; // 最大1m/s
 float speed_w = 0.002f;
 
+uint8_t gpio_state1;
+uint8_t gpio_state2;
+uint8_t gpio_state3;
+uint8_t gpio_state4;
+
 // uint8_t rx_data[8]; //vesc电机反馈
 // FDCAN_RxHeaderTypeDef rx_header;
 
@@ -24,9 +29,13 @@ void ChassisTask(void *argument)
     {
         // 测试舵轮电机
         //(void)Test_HelmMotor();
-        world_speed.vy = handle_value[1] * speed_k;
-        world_speed.vx = handle_value[0] * speed_k;
-        world_speed.vw = handle_value[3] * speed_w;
+        gpio_state1 = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_1);
+        gpio_state2 = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_4);
+        gpio_state3 = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_5);
+        gpio_state4 = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_3);
+        // world_speed.vy = handle_value[1] * speed_k;
+        // world_speed.vx = handle_value[0] * speed_k;
+        // world_speed.vw = handle_value[3] * speed_w;
         car_angle.actual_angle = Imu_angle;
         car_angle.target_angle = Imu_angle;
         if (osMessageQueueGet(handleQueueHandle, receive_handle, NULL, 0U) == osOK)
@@ -93,8 +102,8 @@ void Chassis_canTask(void *argument)
 void My_init(void)
 {
     // 轮初始化
-    Vesc_Init(&vesc_motor[0], &hfdcan1, 51);
-    Vesc_Init(&vesc_motor[1], &hfdcan1, 52);
+    Vesc_Init(&vesc_motor[0], &hfdcan1, 52);
+    Vesc_Init(&vesc_motor[1], &hfdcan1, 51);
     Vesc_Init(&vesc_motor[2], &hfdcan1, 53);
     Vesc_Init(&vesc_motor[3], &hfdcan1, 54);
 
@@ -104,6 +113,9 @@ void My_init(void)
     DJI_Init(&helm_motor[2], &hfdcan1, DJI_M2006, 3, 1);
     DJI_Init(&helm_motor[3], &hfdcan1, DJI_M2006, 4, 1);
 
+    // 后腿初始化
+    Leg_Init();
+
     // 车身保持pid初始化
     pid_init(&pid_CarAnale, 0.0f, 35.0f, 0.006f, 0.1f, 100.0f, 2.0f, 0.02f);
 
@@ -112,6 +124,8 @@ void My_init(void)
     FDCAN1_Init();
     FDCAN2_Init();
     FDCAN3_Init();
+
+    Leg_Clear();
 
     HAL_UARTEx_ReceiveToIdle_DMA(&huart2, receive_handle, sizeof(receive_handle));
     __HAL_DMA_DISABLE_IT(huart2.hdmarx, DMA_IT_HT);
@@ -125,18 +139,18 @@ void My_init(void)
 
 void Test_HelmMotor(void)
 {
-    for (uint8_t i = 0; i < 4; i++) // 测试用
-    {
-        vesc_set_rpm(&vesc_motor[2], 200.0f);
-    }
-    for (uint8_t i = 0; i < 4; i++)
-    {
-        DJI_Speed(&helm_motor[3], 5.0f);
-    }
-    for (uint8_t i = 0; i < 4; i++)
-    {
-        DJI_Position(&helm_motor[1], 0.0f);
-    }
+    // for (uint8_t i = 0; i < 4; i++) // 测试用
+    // {
+          vesc_set_rpm(&vesc_motor[2], 400.0f);
+    // }
+    // for (uint8_t i = 0; i < 4; i++)
+    // {
+    //     DJI_Speed(&helm_motor[3], 5.0f);
+    // }
+    // for (uint8_t i = 0; i < 4; i++)
+    // {
+    //     DJI_Position(&helm_motor[1], 0.0f);
+    // }
 }
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)

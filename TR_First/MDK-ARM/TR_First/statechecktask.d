@@ -43,6 +43,6 @@ tr_first/statechecktask.o: ..\user\StateCheckTask.c \
   D:\keil5\core\ARM\ARMCLANG\Bin\..\include\stdbool.h \
   ..\Core\Inc\fdcan.h ..\Core\Inc\usart.h ..\Core\Inc\spi.h \
   ..\user\bsp_can.h ..\user\helm_chassis.h ..\user\pid.h ..\user\DJI.h \
-  ..\user\vesc.h ..\user\Interpolation.h ..\user\WpLib.h \
+  ..\user\vesc.h ..\user\Interpolation.h ..\user\WpLib.h ..\user\Leg.h \
   ..\user\Handle.h ..\user\imu_100A.h ..\user\dt35.h ..\user\STP_23L.h \
   ..\user\w25q128.h

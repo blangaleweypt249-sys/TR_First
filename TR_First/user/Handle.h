@@ -1,7 +1,9 @@
 #ifndef __HANDLE_H__
 #define __HANDLE_H__
 
+#include "main.h"
 #include "stdint.h"
+#include "cmsis_os2.h"
 
 typedef union
 {
@@ -22,6 +24,8 @@ typedef struct
 void Handle_Analysis(uint8_t *data);
 int16_t Rock_trans(uint16_t rock);
 
+extern uint8_t receive_handle[19];
+extern osMessageQueueId_t handleQueueHandle;
 extern HandleData handle_data;
 extern int16_t handle_value[4]; // 测试遥控数据
 

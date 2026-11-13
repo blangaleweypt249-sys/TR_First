@@ -42,4 +42,6 @@ tr_first/dji.o: ..\user\DJI.c ..\user\DJI.h \
   ..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_uart_ex.h \
   ..\user\bsp_can.h ..\user\helm_chassis.h ..\user\pid.h ..\user\vesc.h \
   ..\user\Interpolation.h ..\user\WpLib.h ..\user\Leg.h \
+  ..\Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS_V2\cmsis_os.h \
+  ..\Drivers\CMSIS\RTOS2\Include\cmsis_os2.h \
   D:\keil5\core\ARM\ARMCLANG\Bin\..\include\string.h

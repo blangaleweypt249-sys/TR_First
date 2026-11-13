@@ -50,5 +50,7 @@ tr_first/main.o: ..\Core\Src\main.c ..\Core\Inc\main.h \
   ..\Core\Inc\gpio.h ..\user\mymain.h \
   D:\keil5\core\ARM\ARMCLANG\Bin\..\include\stdbool.h ..\user\bsp_can.h \
   ..\user\helm_chassis.h ..\user\pid.h ..\user\DJI.h ..\user\vesc.h \
-  ..\user\Interpolation.h ..\user\WpLib.h ..\user\Leg.h ..\user\Handle.h \
-  ..\user\imu_100A.h ..\user\dt35.h ..\user\STP_23L.h ..\user\w25q128.h
+  ..\user\Interpolation.h ..\user\WpLib.h ..\user\Leg.h \
+  ..\Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS_V2\cmsis_os.h \
+  ..\user\Handle.h ..\user\imu_100A.h ..\user\dt35.h ..\user\STP_23L.h \
+  ..\user\w25q128.h

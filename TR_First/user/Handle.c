@@ -1,7 +1,23 @@
 #include "Handle.h"
 
+uint8_t receive_handle[19];
+
 HandleData handle_data;
 int16_t handle_value[4]; // 测试遥控数据
+
+void HandleTask(void *argument)
+{
+
+  for(;;)
+  {
+        if (osMessageQueueGet(handleQueueHandle, receive_handle, NULL, 0U) == osOK)
+        {
+            Handle_Analysis(receive_handle);
+        }
+
+    osDelay(1);
+  }
+}
 
 void Handle_Analysis(uint8_t *data)
 {

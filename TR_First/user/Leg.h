@@ -3,10 +3,12 @@
 
 #include "main.h"
 #include "DJI.h"
+#include "cmsis_os.h"
 
 
 void Leg_Init(void);
 void Leg_Clear(void);
+void Climb_Leg(float distance);
 
 // 后腿电机
 extern DJI_Motor leg_Left;

@@ -67,6 +67,8 @@ void Error_Handler(void);
 #define one_helm_GPIO_Port GPIOD
 #define two_helm_Pin GPIO_PIN_5
 #define two_helm_GPIO_Port GPIOD
+#define front_leg_Pin GPIO_PIN_7
+#define front_leg_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

@@ -26,7 +26,6 @@ extern float speed_k;
 extern uint8_t receive_handle[19];
 extern uint8_t receive_imu[7];
 extern uint8_t receive_dt35[19];
-extern osMessageQueueId_t handleQueueHandle;
 extern osMessageQueueId_t imuQueueHandle;
 extern osMessageQueueId_t dt35QueueHandle;
 extern osSemaphoreId_t ChassisCalcHandle;

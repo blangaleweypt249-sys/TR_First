@@ -1,7 +1,6 @@
 #include "mymain.h"
 
 /*-----------------全局变量--------------*/
-uint8_t receive_handle[19];
 uint8_t receive_imu[7];
 uint8_t receive_dt35[19];
 float last_target_speed[4] = {0.0f};
@@ -13,10 +12,7 @@ Helm_chassis helm_chassis;
 float speed_k = 0.001f; // 最大1m/s
 float speed_w = 0.002f;
 
-uint8_t gpio_state1;
-uint8_t gpio_state2;
-uint8_t gpio_state3;
-uint8_t gpio_state4;
+float up_distance = 0;
 
 // uint8_t rx_data[8]; //vesc电机反馈
 // FDCAN_RxHeaderTypeDef rx_header;
@@ -29,19 +25,12 @@ void ChassisTask(void *argument)
     {
         // 测试舵轮电机
         //(void)Test_HelmMotor();
-        gpio_state1 = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_1);
-        gpio_state2 = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_4);
-        gpio_state3 = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_5);
-        gpio_state4 = HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_3);
+        Climb_Leg(up_distance);
         // world_speed.vy = handle_value[1] * speed_k;
         // world_speed.vx = handle_value[0] * speed_k;
         // world_speed.vw = handle_value[3] * speed_w;
         car_angle.actual_angle = Imu_angle;
         car_angle.target_angle = Imu_angle;
-        if (osMessageQueueGet(handleQueueHandle, receive_handle, NULL, 0U) == osOK)
-        {
-            Handle_Analysis(receive_handle);
-        }
         if (osMessageQueueGet(imuQueueHandle, receive_imu, NULL, 0U) == osOK)
         {
             Imu_Analysis(receive_imu);
@@ -156,14 +145,14 @@ void Test_HelmMotor(void)
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
 
-    if (huart->Instance == USART2)
+    if (huart->Instance == UART9)
     {
         if (Size == sizeof(receive_handle))
         {
             osMessageQueuePut(handleQueueHandle, receive_handle, 0U, 0U);
         }
-        HAL_UARTEx_ReceiveToIdle_DMA(&huart2, receive_handle, sizeof(receive_handle));
-        __HAL_DMA_DISABLE_IT(huart2.hdmarx, DMA_IT_HT);
+        HAL_UARTEx_ReceiveToIdle_DMA(&huart9, receive_handle, sizeof(receive_handle));
+        __HAL_DMA_DISABLE_IT(huart9.hdmarx, DMA_IT_HT);
     }
 
     if (huart->Instance == UART4)
@@ -189,10 +178,10 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
-    if (huart->Instance == USART2)
+    if (huart->Instance == UART9)
     {
-        HAL_UARTEx_ReceiveToIdle_DMA(&huart2, receive_handle, sizeof(receive_handle));
-        __HAL_DMA_DISABLE_IT(huart2.hdmarx, DMA_IT_HT);
+        HAL_UARTEx_ReceiveToIdle_DMA(&huart9, receive_handle, sizeof(receive_handle));
+        __HAL_DMA_DISABLE_IT(huart9.hdmarx, DMA_IT_HT);
     }
 
     if (huart->Instance == UART4)

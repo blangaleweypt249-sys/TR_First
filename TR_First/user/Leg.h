@@ -10,6 +10,8 @@ void Leg_Init(void);
 void Leg_Clear(void);
 void Climb_Leg(float distance);
 
+
+extern uint8_t front_flag;
 // 后腿电机
 extern DJI_Motor leg_Left;
 extern DJI_Motor leg_Right;

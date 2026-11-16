@@ -59,6 +59,20 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define SPI6_NSS_Pin GPIO_PIN_4
 #define SPI6_NSS_GPIO_Port GPIOA
+#define up_air_Pin GPIO_PIN_8
+#define up_air_GPIO_Port GPIOC
+#define left_air_Pin GPIO_PIN_9
+#define left_air_GPIO_Port GPIOC
+#define right_air_Pin GPIO_PIN_8
+#define right_air_GPIO_Port GPIOA
+#define up_jia_Pin GPIO_PIN_9
+#define up_jia_GPIO_Port GPIOA
+#define right_realair_Pin GPIO_PIN_10
+#define right_realair_GPIO_Port GPIOC
+#define left_realair_Pin GPIO_PIN_11
+#define left_realair_GPIO_Port GPIOC
+#define left_jiazhua_Pin GPIO_PIN_0
+#define left_jiazhua_GPIO_Port GPIOD
 #define four_helm_Pin GPIO_PIN_1
 #define four_helm_GPIO_Port GPIOD
 #define three_helm_Pin GPIO_PIN_3
@@ -67,6 +81,12 @@ void Error_Handler(void);
 #define one_helm_GPIO_Port GPIOD
 #define two_helm_Pin GPIO_PIN_5
 #define two_helm_GPIO_Port GPIOD
+#define up_realair_Pin GPIO_PIN_6
+#define up_realair_GPIO_Port GPIOD
+#define med_leg_Pin GPIO_PIN_7
+#define med_leg_GPIO_Port GPIOD
+#define right_jia_Pin GPIO_PIN_6
+#define right_jia_GPIO_Port GPIOB
 #define front_leg_Pin GPIO_PIN_7
 #define front_leg_GPIO_Port GPIOB
 

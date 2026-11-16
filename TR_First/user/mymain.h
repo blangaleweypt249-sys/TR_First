@@ -13,6 +13,7 @@
 #include "vesc.h"
 #include "DJI.h"
 #include "helm_chassis.h"
+#include "StateCheckTask.h"
 #include "Leg.h"
 #include "imu_100A.h"
 #include "dt35.h"
@@ -23,7 +24,7 @@
 
 extern HandleData handle_data;
 extern float speed_k;
-extern uint8_t receive_handle[19];
+extern uint8_t receive_handle[17];
 extern uint8_t receive_imu[7];
 extern uint8_t receive_dt35[19];
 extern osMessageQueueId_t imuQueueHandle;

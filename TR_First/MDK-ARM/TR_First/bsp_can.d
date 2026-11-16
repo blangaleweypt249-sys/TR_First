@@ -43,4 +43,8 @@ tr_first/bsp_can.o: ..\user\bsp_can.c ..\user\bsp_can.h \
   ..\user\DJI.h ..\user\vesc.h ..\user\Interpolation.h ..\user\WpLib.h \
   ..\user\Leg.h \
   ..\Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS_V2\cmsis_os.h \
-  ..\Drivers\CMSIS\RTOS2\Include\cmsis_os2.h
+  ..\Drivers\CMSIS\RTOS2\Include\cmsis_os2.h ..\user\Up_control.h \
+  ..\user\RS00.h ..\user\mymain.h ..\Core\Inc\usart.h ..\Core\Inc\spi.h \
+  ..\user\Handle.h ..\user\StateCheckTask.h ..\user\imu_100A.h \
+  ..\user\dt35.h ..\user\STP_23L.h ..\user\w25q128.h ..\user\RS05.h \
+  ..\user\MG5010E.h

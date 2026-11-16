@@ -1,4 +1,5 @@
 #include "mymain.h"
+#include "usart.h"
 
 /*-----------------全局变量--------------*/
 uint8_t receive_imu[7];
@@ -9,8 +10,8 @@ float last_target_speed[4] = {0.0f};
 Speed world_speed;
 Speed body_speed;
 Helm_chassis helm_chassis;
-float speed_k = 0.001f; // 最大1m/s
-float speed_w = 0.002f;
+float speed_k = 0.0025f; // 最大1m/s
+float speed_w = 2.0f;
 
 float up_distance = 0;
 
@@ -26,11 +27,33 @@ void ChassisTask(void *argument)
         // 测试舵轮电机
         //(void)Test_HelmMotor();
         Climb_Leg(up_distance);
-        // world_speed.vy = handle_value[1] * speed_k;
-        // world_speed.vx = handle_value[0] * speed_k;
-        // world_speed.vw = handle_value[3] * speed_w;
+        if (front_flag == 1)
+        {
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+        }
+        Key_Detect();
+
+        //锁车或者与遥控失联(PA6锁车)
+        if (handle_lock)
+        {
+            world_speed.vx = 0.0f;
+            world_speed.vy = 0.0f;
+            world_speed.vw = 0.0f;
+        }
+        else if (handle_key_control)
+        {
+            world_speed.vx = (handle_data.right_key[0] * 2.0f) -
+                             (handle_data.right_key[4] * 2.0f);
+            world_speed.vy = (handle_data.right_key[1] * 2.0f) -
+                             (handle_data.right_key[3] * 2.0f);
+        }
+        else
+        {
+            world_speed.vy = handle_value[1] * speed_k;
+            world_speed.vx = handle_value[0] * speed_k;
+        }
         car_angle.actual_angle = Imu_angle;
-        car_angle.target_angle = Imu_angle;
+        car_angle.target_angle = 0.0f;
         if (osMessageQueueGet(imuQueueHandle, receive_imu, NULL, 0U) == osOK)
         {
             Imu_Analysis(receive_imu);
@@ -80,8 +103,8 @@ void Chassis_canTask(void *argument)
         }
         for (uint8_t i = 0; i < 4; i++)
         {
-            float planned_speed = speed_planning(helm_speed[i], &last_target_speed[i], 20.0f, 40.0f);
-            vesc_set_rpm(&vesc_motor[i], planned_speed * helm_motor[i].speed_cosk);
+            //float planned_speed = speed_planning(helm_speed[i], &last_target_speed[i], 300.0f, 1500.0f);
+            vesc_set_rpm(&vesc_motor[i], helm_speed[i]* helm_motor[i].speed_cosk);
         }
 
         osDelay(1);
@@ -106,7 +129,7 @@ void My_init(void)
     Leg_Init();
 
     // 车身保持pid初始化
-    pid_init(&pid_CarAnale, 0.0f, 35.0f, 0.006f, 0.1f, 100.0f, 2.0f, 0.02f);
+    pid_init(&pid_CarAnale, 0.0f, 1.8f, 0.0f, 0.2f, 0.0f, 2.0f, 0.05f);
 
     W25Q128_Init(&w25q128, &hspi6, SPI6_NSS_GPIO_Port, SPI6_NSS_Pin);
 
@@ -116,8 +139,8 @@ void My_init(void)
 
     Leg_Clear();
 
-    HAL_UARTEx_ReceiveToIdle_DMA(&huart2, receive_handle, sizeof(receive_handle));
-    __HAL_DMA_DISABLE_IT(huart2.hdmarx, DMA_IT_HT);
+    HAL_UARTEx_ReceiveToIdle_DMA(&huart9, receive_handle, sizeof(receive_handle));
+    __HAL_DMA_DISABLE_IT(huart9.hdmarx, DMA_IT_HT);
 
     HAL_UARTEx_ReceiveToIdle_DMA(&huart4, receive_dt35, sizeof(receive_dt35));
     __HAL_DMA_DISABLE_IT(huart4.hdmarx, DMA_IT_HT);
@@ -130,7 +153,7 @@ void Test_HelmMotor(void)
 {
     // for (uint8_t i = 0; i < 4; i++) // 测试用
     // {
-          vesc_set_rpm(&vesc_motor[2], 400.0f);
+    vesc_set_rpm(&vesc_motor[2], 400.0f);
     // }
     // for (uint8_t i = 0; i < 4; i++)
     // {
@@ -147,10 +170,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 
     if (huart->Instance == UART9)
     {
-        if (Size == sizeof(receive_handle))
-        {
-            osMessageQueuePut(handleQueueHandle, receive_handle, 0U, 0U);
-        }
+        Handle_RxFeed(receive_handle, Size);
         HAL_UARTEx_ReceiveToIdle_DMA(&huart9, receive_handle, sizeof(receive_handle));
         __HAL_DMA_DISABLE_IT(huart9.hdmarx, DMA_IT_HT);
     }
@@ -180,6 +200,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == UART9)
     {
+        __HAL_UART_CLEAR_OREFLAG(&huart9);
         HAL_UARTEx_ReceiveToIdle_DMA(&huart9, receive_handle, sizeof(receive_handle));
         __HAL_DMA_DISABLE_IT(huart9.hdmarx, DMA_IT_HT);
     }

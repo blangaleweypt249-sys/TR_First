@@ -2,6 +2,8 @@
 
 #define dis_to_pos 625.0f / 42.5f
 
+uint8_t front_flag=0;
+
 // 后腿电机
 DJI_Motor leg_Left;
 DJI_Motor leg_Right;
@@ -37,15 +39,15 @@ void Climb_Leg(float distance)
         distance = 42.5f;
     }
 
-    // if(distance > 2.0f)
-    // {
-    //     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
-    // }
-    // else
-    // {
-    //     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
-    // }
-    // osDelay(250);
+    if(distance > 2.0f && front_flag == 0)
+    {
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
+    }
+    else
+    {
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+    }
+    osDelay(170);
     //统一传入正值即可
     DJI_Position(&leg_Left, distance * dis_to_pos);
     DJI_Position(&leg_Right, -distance * dis_to_pos);//镜像导致

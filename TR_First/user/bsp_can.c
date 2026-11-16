@@ -1,4 +1,5 @@
 #include "bsp_can.h"
+#include "Up_control.h"
 #include "cmsis_os2.h"
 
 void FDCAN1_Init(void)
@@ -64,6 +65,19 @@ HAL_StatusTypeDef CAN_Transmit(FDCAN_HandleTypeDef *hfdcan, uint8_t type, uint32
     for (uint8_t i = 0; i < len; i++)
     {
         send_data[i] = data[i];
+    }
+
+    //FIFO 满了等一会再发，别把指令帧丢了（中断里不等，丢了下一个周期再发）
+    if (__get_IPSR() == 0U)
+    {
+        uint32_t wait = 0;
+        while (HAL_FDCAN_GetTxFifoFreeLevel(hfdcan) == 0U)
+        {
+            if (++wait > 20000U)//约 1ms，总线关了也不会卡死
+            {
+                return HAL_BUSY;
+            }
+        }
     }
 
     status = HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, &tx_header, send_data);
@@ -156,7 +170,23 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
             }
             else if(hfdcan == &hfdcan3)
             {
+                if (rx_header.IdType == FDCAN_STANDARD_ID)//MG5010E 标准帧
+                {
+                    MG5010E_GetPosition(&left_arm.joint1, &rx_header, rx_data);
+                    MG5010E_GetPosition(&right_arm.joint1, &rx_header, rx_data);
+                }
+                else//RS 电机扩展帧
+                {
+                    if (rx_header.Identifier == 0x00007FFEU && arm_boot_cnt < 6U)
+                        arm_boot_cnt++;//每台电机上电发一帧，6 帧到齐说明 6 台都起来了
 
+                    RS00_ReadData(&left_arm.joint2, rx_data, &rx_header);
+                    RS00_ReadData(&right_arm.joint2, rx_data, &rx_header);
+                    RS05_ReadData(&left_arm.joint3, rx_data, &rx_header);
+                    RS05_ReadData(&left_arm.joint4, rx_data, &rx_header);
+                    RS05_ReadData(&right_arm.joint3, rx_data, &rx_header);
+                    RS05_ReadData(&right_arm.joint4, rx_data, &rx_header);
+                }
             }
         }
     }

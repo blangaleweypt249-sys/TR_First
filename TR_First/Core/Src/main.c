@@ -25,10 +25,12 @@
 #include "spi.h"
 #include "usart.h"
 #include "gpio.h"
+#include "tim.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "mymain.h"
+#include "Up_control.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -115,9 +117,9 @@ int main(void)
   MX_UART9_Init();
   MX_UART5_Init();
   MX_USART6_UART_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
   My_init();//通信基础初始化
-            //机构位置初始化
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -275,7 +277,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-
+  if (htim->Instance == TIM7)
+  {
+    Arm_PollTimer();
+  }
   /* USER CODE END Callback 1 */
 }
 

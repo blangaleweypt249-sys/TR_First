@@ -421,6 +421,11 @@
               <FilePath>../Core/Src/fdcan.c</FilePath>
             </File>
             <File>
+              <FileName>tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/tim.c</FilePath>
+            </File>
+            <File>
               <FileName>spi.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/spi.c</FilePath>
@@ -839,6 +844,16 @@
               <FilePath>..\user\helm_chassis.h</FilePath>
             </File>
             <File>
+              <FileName>Up_control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\Up_control.c</FilePath>
+            </File>
+            <File>
+              <FileName>Up_control.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\user\Up_control.h</FilePath>
+            </File>
+            <File>
               <FileName>Handle.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\user\Handle.c</FilePath>
@@ -932,6 +947,36 @@
               <FileName>vesc.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\user\vesc.h</FilePath>
+            </File>
+            <File>
+              <FileName>RS00.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\RS00.c</FilePath>
+            </File>
+            <File>
+              <FileName>RS00.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\user\RS00.h</FilePath>
+            </File>
+            <File>
+              <FileName>RS05.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\RS05.c</FilePath>
+            </File>
+            <File>
+              <FileName>RS05.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\user\RS05.h</FilePath>
+            </File>
+            <File>
+              <FileName>MG5010E.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\MG5010E.c</FilePath>
+            </File>
+            <File>
+              <FileName>MG5010E.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\user\MG5010E.h</FilePath>
             </File>
           </Files>
         </Group>

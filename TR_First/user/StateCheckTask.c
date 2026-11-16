@@ -32,7 +32,7 @@ void StateCheckTask(void *argument)
     {
         RecoverCANBus();
 
-        Device_Offline_State.handle_state = Check_State(handle_data.num, STATE_TIMEOUT_COUNT);
+        Device_Offline_State.handle_state = Check_State(handle_data.num, 100);
         Device_Offline_State.imu_state = Check_State(imu_num, STATE_TIMEOUT_COUNT);
         Device_Offline_State.dt35_state[0] = Check_State(dt35_front.dt35_num, STATE_TIMEOUT_COUNT);
         Device_Offline_State.dt35_state[1] = Check_State(dt35_back.dt35_num, STATE_TIMEOUT_COUNT);

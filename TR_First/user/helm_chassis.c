@@ -96,10 +96,10 @@ void helm_calculate(Speed *body_speed, Helm_chassis *helm_chassises)
         {
             helm_chassises->helm_speed[i] = 0.0f;
         }
-        helm_chassises->helm_angle[0] = atan2f(+half_dy, -half_dx);
-        helm_chassises->helm_angle[1] = atan2f(+half_dy, +half_dx);
-        helm_chassises->helm_angle[2] = atan2f(-half_dy, +half_dx);
-        helm_chassises->helm_angle[3] = atan2f(-half_dy, -half_dx);
+        helm_chassises->helm_angle[0] = -atan2f(+half_dy, -half_dx);
+        helm_chassises->helm_angle[1] = -atan2f(+half_dy, +half_dx);
+        helm_chassises->helm_angle[2] = -atan2f(-half_dy, +half_dx);
+        helm_chassises->helm_angle[3] = -atan2f(-half_dy, -half_dx);
     }
     else
     {
@@ -171,14 +171,13 @@ void Helm_Calibration(void)
         osDelay(1);
     }
 
-    osDelay(10);
     // 四个舵轮回零
     for (uint16_t count = 0; count < 50; count++)
     {
         for (uint8_t i = 0; i < 4; i++)
             DJI_ToZero(&helm_motor[i]);
 
-        osDelay(5);
+        osDelay(10);
     }
 
     ready_target_initialized = 1U;
@@ -218,6 +217,19 @@ float speed_planning(float target, float *last_target, float accel_step, float d
 
 void World_to_body(Speed *world_speed, Speed *body_speed, float imu_angle)
 {
+    
+    if(world_speed->vx > 0.005 && world_speed->vx < 0.03){
+		world_speed->vx = 0.03;
+	}
+	else if(world_speed->vx < -0.005 && world_speed->vx > -0.03){
+		world_speed->vx = -0.03;
+	}
+	if(world_speed->vy > 0.005 && world_speed->vy < 0.03){
+		world_speed->vy = 0.03;
+	}
+	if(world_speed->vy < -0.005 && world_speed->vy > -0.03){
+		world_speed->vy = -0.03;
+	}
     float cos_angle = cosf(imu_angle);
     float sin_angle = sinf(imu_angle);
 

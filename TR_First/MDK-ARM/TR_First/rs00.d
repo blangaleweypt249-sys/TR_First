@@ -42,6 +42,8 @@ tr_first/rs00.o: ..\user\RS00.c ..\user\RS00.h ..\user\vesc.h \
   D:\keil5\core\ARM\ARMCLANG\Bin\..\include\stdbool.h ..\user\mymain.h \
   ..\Core\Inc\usart.h ..\Core\Inc\spi.h ..\user\bsp_can.h \
   ..\user\helm_chassis.h ..\user\pid.h ..\user\DJI.h ..\user\WpLib.h \
+  ..\user\Leg.h \
+  ..\Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS_V2\cmsis_os.h \
   ..\Drivers\CMSIS\RTOS2\Include\cmsis_os2.h ..\user\Handle.h \
-  ..\user\imu_100A.h ..\user\dt35.h ..\user\STP_23L.h ..\user\w25q128.h \
-  ..\user\RS05.h
+  ..\user\StateCheckTask.h ..\user\imu_100A.h ..\user\dt35.h \
+  ..\user\STP_23L.h ..\user\w25q128.h ..\user\RS05.h

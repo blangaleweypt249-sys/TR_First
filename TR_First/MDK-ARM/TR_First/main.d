@@ -47,10 +47,11 @@ tr_first/main.o: ..\Core\Src\main.c ..\Core\Inc\main.h \
   ..\Middlewares\Third_Party\FreeRTOS\Source\include\mpu_wrappers.h \
   ..\Drivers\CMSIS\RTOS2\Include\cmsis_os2.h ..\Core\Inc\dma.h \
   ..\Core\Inc\fdcan.h ..\Core\Inc\spi.h ..\Core\Inc\usart.h \
-  ..\Core\Inc\gpio.h ..\user\mymain.h \
+  ..\Core\Inc\gpio.h ..\Core\Inc\tim.h ..\user\mymain.h \
   D:\keil5\core\ARM\ARMCLANG\Bin\..\include\stdbool.h ..\user\bsp_can.h \
   ..\user\helm_chassis.h ..\user\pid.h ..\user\DJI.h ..\user\vesc.h \
   ..\user\Interpolation.h ..\user\WpLib.h ..\user\Leg.h \
   ..\Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS_V2\cmsis_os.h \
-  ..\user\Handle.h ..\user\imu_100A.h ..\user\dt35.h ..\user\STP_23L.h \
-  ..\user\w25q128.h
+  ..\user\Handle.h ..\user\StateCheckTask.h ..\user\imu_100A.h \
+  ..\user\dt35.h ..\user\STP_23L.h ..\user\w25q128.h \
+  ..\user\Up_control.h ..\user\RS00.h ..\user\RS05.h ..\user\MG5010E.h

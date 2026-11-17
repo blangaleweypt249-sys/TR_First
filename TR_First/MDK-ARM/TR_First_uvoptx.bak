@@ -175,6 +175,16 @@
           <WinNumber>1</WinNumber>
           <ItemText>gpio_state4</ItemText>
         </Ww>
+        <Ww>
+          <count>4</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>left_arm</ItemText>
+        </Ww>
+        <Ww>
+          <count>5</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>right_arm</ItemText>
+        </Ww>
       </WatchWindow1>
       <WatchWindow2>
         <Ww>
@@ -231,6 +241,11 @@
           <count>10</count>
           <WinNumber>2</WinNumber>
           <ItemText>right_arm_4</ItemText>
+        </Ww>
+        <Ww>
+          <count>11</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>shangxipan</ItemText>
         </Ww>
       </WatchWindow2>
       <Tracepoint>

@@ -1,14 +1,61 @@
 #include  "Up_control.h"
+#include  "Handle.h"
 #include  "tim.h"
 
-uint8_t act_flag=0;
 uint8_t arm_set_home;//1: 只标零不发运控
 volatile uint8_t arm_boot_cnt;
-
+float slide_pos;
 //左机械臂
 Arm left_arm;
 //右机械臂
 Arm right_arm;
+
+//吸块位置：前 4 个左臂、后 4 个右臂；第 1 个 MG5010(度)，后 3 个 RS(弧度)
+static const float suck_block_pos[8] =
+{
+    -124.0f, -1.05f, 0.0f,  1.19f,
+    113.0f,  1.44f, 0.02f, -0.78f,
+};
+
+//遥控按键
+typedef struct
+{
+    uint8_t key;
+    uint8_t key_state;
+} Key;
+
+static Key pd10_key;    //吸块
+static Key pd11_key;    //回零
+static Key pa4_key;     //吸盘开关
+static uint8_t suction_off_flag;   //放下之后等一会全关
+static uint32_t suction_off_tick;
+
+//按键：松开那一拍触发一次
+static uint8_t Key_Release(Key *key)
+{
+    if (key->key == 1U)
+    {
+        key->key_state = 1U;
+        return 0U;
+    }
+    if (key->key_state == 1U)
+    {
+        key->key_state = 0U;
+        return 1U;
+    }
+    return 0U;
+}
+
+//开关：状态一变就触发一次，上电没复位也不影响
+static uint8_t Key_Change(Key *key)
+{
+    if (key->key != key->key_state)
+    {
+        key->key_state = key->key;
+        return 1U;
+    }
+    return 0U;
+}
 
 //MG5010E 不会主动上报位置，TIM7 每 200ms 调一次，发读位置命令
 void Arm_PollTimer(void)
@@ -17,9 +64,164 @@ void Arm_PollTimer(void)
     MG5010E_ReadPosition(&right_arm.joint1);
 }
 
+void Arm_MoveTo(Arm *arm, const float *pos)
+{
+    arm->target[0] = pos[0];
+    arm->target[1] = pos[1];
+    arm->target[2] = pos[2];
+    arm->target[3] = pos[3];
+}
+
+void Arm_Home(Arm *arm)
+{
+    arm->target[0] = 0.0f;
+    arm->target[1] = 0.0f;
+    arm->target[2] = 0.0f;
+    arm->target[3] = 0.0f;
+}
+
+void Arm_SuckBlock(Arm *arm)
+{
+    Arm_MoveTo(arm, &suck_block_pos[arm->id * 4U]);
+}
+
+//吸取：气泵开、真空阀关
+void Arm_Suck(Arm *arm)
+{
+    HAL_GPIO_WritePin(arm->pump_port, arm->pump_pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(arm->vac_port, arm->vac_pin, GPIO_PIN_RESET);
+}
+
+//放下：气泵关、真空阀开
+void Arm_Release(Arm *arm)
+{
+    HAL_GPIO_WritePin(arm->pump_port, arm->pump_pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(arm->vac_port, arm->vac_pin, GPIO_PIN_SET);
+}
+
+//全关
+void Arm_Off(Arm *arm)
+{
+    HAL_GPIO_WritePin(arm->pump_port, arm->pump_pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(arm->vac_port, arm->vac_pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(arm->grip_port, arm->grip_pin, GPIO_PIN_RESET);
+}
+
+void Arm_Grip(Arm *arm, uint8_t on)
+{
+    HAL_GPIO_WritePin(arm->grip_port, arm->grip_pin, on ? GPIO_PIN_SET : GPIO_PIN_RESET);
+}
+
+//0 全关 1 吸取 2 放下
+void Arm_Suction(Arm *arm, uint8_t cmd)
+{
+    arm->suction = cmd;
+
+    if (cmd == 1U)
+    {
+        Arm_Suck(arm);
+    }
+    else if (cmd == 2U)
+    {
+        Arm_Release(arm);
+    }
+    else
+    {
+        Arm_Off(arm);
+    }
+}
+
+//按目标下发 4 个关节，MG5010 限速 25rpm
+static void Arm_Send(Arm *arm)
+{
+    MG5010E_SpeedPos(&arm->joint1, arm->target[0], 25.0f);
+    RS00_Mit(&arm->joint2, 0, arm->target[1], 0, 10, 2, 0, 0);
+    RS05_Mit(&arm->joint3, 0, arm->target[2], 0, 5, 2, 0, 0);
+    RS05_Mit(&arm->joint4, 0, arm->target[3], 0, 10, 2, 0, 0);
+}
+
+//遥控：PD10 吸块、PD11 回零、PA4 吸盘切换
+static void Arm_Key(void)
+{
+    pd10_key.key = handle_data.left_key[0];
+    pd11_key.key = handle_data.left_key[1];
+    pa4_key.key = handle_data.up_key[2];
+
+    if (Key_Release(&pd10_key))
+    {
+        Arm_SuckBlock(&left_arm);
+        Arm_SuckBlock(&right_arm);
+    }
+
+    if (Key_Release(&pd11_key))
+    {
+        Arm_Home(&left_arm);
+        Arm_Home(&right_arm);
+    }
+
+    if (Key_Change(&pa4_key))
+    {
+        if (left_arm.suction == 1U)//吸着 -> 放下
+        {
+            Arm_Suction(&left_arm, 2U);
+            Arm_Suction(&right_arm, 2U);
+            suction_off_flag = 1U;
+            suction_off_tick = HAL_GetTick();
+        }
+        else//开着或已放下 -> 吸
+        {
+            Arm_Suction(&left_arm, 1U);
+            Arm_Suction(&right_arm, 1U);
+            suction_off_flag = 0U;
+        }
+    }
+}
+
+//启动电机
+static void Arm_InitRetry(void)
+{
+    static uint16_t retry_cont;
+    static uint8_t retry_round;
+    static uint8_t retry_step = 3U;
+
+    //电机启动比 MCU 慢，每 500ms 补一轮模式+使能，补到 8 秒；循环 10ms 一轮
+    if (++retry_cont >= 50U)
+    {
+        retry_cont = 0;
+        if (retry_round < 16U)
+        {
+            retry_round++;
+            retry_step = 0;
+        }
+    }
+
+    if (retry_step < 3U)
+    {
+        if (retry_step == 0)
+        {
+            RS00_SetActiveReporting(&left_arm.joint2);  RS00_SetMode(&left_arm.joint2, mit);  RS00_Enable(&left_arm.joint2);
+            RS00_SetActiveReporting(&right_arm.joint2); RS00_SetMode(&right_arm.joint2, mit); RS00_Enable(&right_arm.joint2);
+        }
+        else if (retry_step == 1)
+        {
+            RS05_SetActiveReporting(&left_arm.joint3);  RS05_SetMode(&left_arm.joint3, mit);  RS05_Enable(&left_arm.joint3);
+            RS05_SetActiveReporting(&left_arm.joint4);  RS05_SetMode(&left_arm.joint4, mit);  RS05_Enable(&left_arm.joint4);
+        }
+        else
+        {
+            RS05_SetActiveReporting(&right_arm.joint3); RS05_SetMode(&right_arm.joint3, mit); RS05_Enable(&right_arm.joint3);
+            RS05_SetActiveReporting(&right_arm.joint4); RS05_SetMode(&right_arm.joint4, mit); RS05_Enable(&right_arm.joint4);
+        }
+        retry_step++;
+    }
+}
+
 void Up_Init(void)
 {
     arm_set_home = 0;//1: 只标零，把臂摆到零位烧一次，标完改回 0 再烧
+
+    left_arm.id = 0U;
+    right_arm.id = 1U;
 
     //关节1 大臂第一个电机
     MG5010E_Init(&left_arm.joint1, &hfdcan3, 1, 36.0f);
@@ -59,67 +261,17 @@ void Up_Init(void)
     Arm_Off(&left_arm);
     Arm_Off(&right_arm);
 
+    //上电即回零
+    Arm_Home(&left_arm);
+    Arm_Home(&right_arm);
+
     HAL_TIM_Base_Start_IT(&htim7);//200ms 读一次大臂电机位置
-}
-
-//吸取：气泵开、真空阀关
-void Arm_Suck(Arm *arm)
-{
-    HAL_GPIO_WritePin(arm->pump_port, arm->pump_pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(arm->vac_port, arm->vac_pin, GPIO_PIN_RESET);
-}
-
-//放下：气泵关、真空阀开
-void Arm_Release(Arm *arm)
-{
-    HAL_GPIO_WritePin(arm->pump_port, arm->pump_pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(arm->vac_port, arm->vac_pin, GPIO_PIN_SET);
-}
-
-//完成：全关
-void Arm_Off(Arm *arm)
-{
-    HAL_GPIO_WritePin(arm->pump_port, arm->pump_pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(arm->vac_port, arm->vac_pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(arm->grip_port, arm->grip_pin, GPIO_PIN_RESET);
-}
-
-void Arm_Grip(Arm *arm, uint8_t on)
-{
-    HAL_GPIO_WritePin(arm->grip_port, arm->grip_pin, on ? GPIO_PIN_SET : GPIO_PIN_RESET);
-}
-
-void arm_attraction(void)
-{
-    switch (act_flag)
-    {
-        case 1:
-            Arm_Suck(&left_arm);
-            Arm_Suck(&right_arm);
-            break;
-
-        case 2:
-            Arm_Release(&left_arm);
-            Arm_Release(&right_arm);
-            break;
-
-        case 3:
-            Arm_Off(&left_arm);
-            Arm_Off(&right_arm);
-            break;
-
-        default:
-            break;
-    }
 }
 
 void PickTask(void *argument)
 {
   (void)argument;
   uint16_t wait_cont = 0;
-  uint16_t retry_cont = 0;
-  uint8_t retry_round = 0;
-  uint8_t retry_step = 3U;
 
   while (arm_boot_cnt < 6U && wait_cont < 300U)//等 6 台 RS 电机上电，最多 1.5s
   {
@@ -127,58 +279,28 @@ void PickTask(void *argument)
     osDelay(5);
   }
 
-  Up_Init();//机构初始化
+  Up_Init();//机构初始化，目标都置 0，上电就回零点
 
   for(;;)
   {
-    if (++retry_cont >= 100U)
+    Arm_InitRetry();//补模式+使能
+    Arm_Key();      //遥控
+
+    if (arm_set_home == 0)
     {
-      retry_cont = 0;
-      if (retry_round < 16U)
-      {
-        retry_round++;
-        retry_step = 0;
-      }
+      Arm_Send(&left_arm);
+      Arm_Send(&right_arm);
+      DJI_Position(&right_arm.slide, slide_pos);
     }
 
-    if (retry_step < 3U)
+    if (suction_off_flag && (HAL_GetTick() - suction_off_tick > 1000U))//放下 1 秒后全关
     {
-      if (retry_step == 0)
-      {
-        RS00_SetActiveReporting(&left_arm.joint2);  RS00_SetMode(&left_arm.joint2, mit);  RS00_Enable(&left_arm.joint2);
-        RS00_SetActiveReporting(&right_arm.joint2); RS00_SetMode(&right_arm.joint2, mit); RS00_Enable(&right_arm.joint2);
-      }
-      else if (retry_step == 1)
-      {
-        RS05_SetActiveReporting(&left_arm.joint3);  RS05_SetMode(&left_arm.joint3, mit);  RS05_Enable(&left_arm.joint3);
-        RS05_SetActiveReporting(&left_arm.joint4);  RS05_SetMode(&left_arm.joint4, mit);  RS05_Enable(&left_arm.joint4);
-      }
-      else
-      {
-        RS05_SetActiveReporting(&right_arm.joint3); RS05_SetMode(&right_arm.joint3, mit); RS05_Enable(&right_arm.joint3);
-        RS05_SetActiveReporting(&right_arm.joint4); RS05_SetMode(&right_arm.joint4, mit); RS05_Enable(&right_arm.joint4);
-      }
-      retry_step++;
+      suction_off_flag = 0U;
+      Arm_Suction(&left_arm, 0U);
+      Arm_Suction(&right_arm, 0U);
     }
 
-    arm_attraction();
-
-    if (arm_set_home == 0)//标零那一次不发运控，臂留软的好摆
-    {
-    //   MG5010E_SpeedPos(&left_arm.joint1, 0.0f, 5.0f);
-    //   MG5010E_SpeedPos(&right_arm.joint1, 0.0f, 5.0f);
-
-      RS00_Mit(&left_arm.joint2, 0, 0, 0, 0, 0, 0, 0);
-      RS00_Mit(&right_arm.joint2, 0, 0, 0, 0, 0, 0, 0);
-      RS05_Mit(&left_arm.joint3, 0, 0, 0, 0, 0, 0, 0);
-      RS05_Mit(&left_arm.joint4, 0, 0, 0, 0, 0, 0, 0);
-      RS05_Mit(&right_arm.joint3, 0, 0, 0, 0, 0, 0, 0);
-      RS05_Mit(&right_arm.joint4, 0, 0, 0, 0, 0, 0, 0);
-
-    //   DJI_Position(&right_arm.slide, 0.0f);
-    }
-
-    osDelay(5);//5ms 一轮，RS 200Hz
+    osDelay(10);//10ms 一轮，运控 100Hz
   }
 
 }

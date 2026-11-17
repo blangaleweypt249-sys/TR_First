@@ -11,12 +11,17 @@
 //机械臂，一台臂 4 个关节 + 末端气路
 typedef struct
 {
+    uint8_t id;             //0 左臂 1 右臂，对应吸块表里的偏移
+
     MG5010E joint1;         //大臂第一个电机
     RS00 joint2;            //大臂第二个电机
     RS05 joint3;            //小臂
     RS05 joint4;            //腕
     DJI_Motor slide;        //底座滑台，只有右臂有
     uint8_t has_slide;
+
+    float target[4];        //关节1~4 目标：第 1 个度，后 3 个弧度
+    uint8_t suction;        //0 关 1 吸 2 放
 
     GPIO_TypeDef *pump_port;    //气泵
     uint16_t pump_pin;
@@ -31,13 +36,14 @@ extern Arm right_arm;
 extern volatile uint8_t arm_boot_cnt;    //RS 电机上电 announce 帧计数，6 帧到齐说明都启动好了
 
 void Up_Init(void);
-void arm_attraction(void);
-void Arm_PollTimer(void);               //TIM7 回调里调，读大臂电机位置
-void Arm_Suck(Arm *arm);                //吸取：气泵开、真空阀关
-void Arm_Release(Arm *arm);             //放下：气泵关、真空阀开
-void Arm_Off(Arm *arm);                 //完成：全关
-void Arm_Grip(Arm *arm, uint8_t on);    //夹爪
-
-extern uint8_t act_flag;
+void Arm_Home(Arm *arm);                    //回零：4 个关节目标都置 0
+void Arm_SuckBlock(Arm *arm);               //去吸块位
+void Arm_MoveTo(Arm *arm, const float *pos); //改目标，单位：度/弧度混合
+void Arm_Suction(Arm *arm, uint8_t cmd);    //0 全关 1 吸取 2 放下
+void Arm_Suck(Arm *arm);                    //吸取：气泵开、真空阀关
+void Arm_Release(Arm *arm);                 //放下：气泵关、真空阀开
+void Arm_Off(Arm *arm);                     //全关
+void Arm_Grip(Arm *arm, uint8_t on);        //夹爪
+void Arm_PollTimer(void);                   //TIM7 回调里调，读大臂电机位置
 
 #endif

@@ -17,7 +17,12 @@ static uint16_t Wifi_ReadResponse(uint8_t *buffer, uint16_t capacity,
     if (HAL_UART_Receive(&huart6, &ch, 1U, 50U) == HAL_OK)
     {
       if (length + 1U < capacity)
+      {
         buffer[length++] = ch;
+        buffer[length] = '\0';
+        if (strstr((char *)buffer, "wifi got ip") != NULL)
+          break;
+      }
     }
   }
 
@@ -49,6 +54,7 @@ static uint8_t Wifi_Connect(void)
   Wifi_ReadResponse(response, sizeof(response), 10000U);
   if (strstr((char *)response, "wifi got ip") == NULL)
     return 0U;
+  osDelay(2000U);
 
   Wifi_SendCommand(client_cmd, response, sizeof(response), 2000U);
   if (strstr((char *)response, "OK") == NULL)

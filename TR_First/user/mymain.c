@@ -15,6 +15,8 @@ float speed_w = 2.0f;
 
 float up_distance = 0;
 
+
+uint8_t shangxipan;
 // uint8_t rx_data[8]; //vesc电机反馈
 // FDCAN_RxHeaderTypeDef rx_header;
 

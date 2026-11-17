@@ -165,6 +165,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 
                     DJI_Analysisdata(&leg_Left_2006, &rx_header, rx_data);
                     DJI_Analysisdata(&leg_Right_2006, &rx_header, rx_data);
+                    DJI_Analysisdata(&right_arm.slide, &rx_header, rx_data);
                 }
 
             }
@@ -186,7 +187,6 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
                     RS05_ReadData(&left_arm.joint4, rx_data, &rx_header);
                     RS05_ReadData(&right_arm.joint3, rx_data, &rx_header);
                     RS05_ReadData(&right_arm.joint4, rx_data, &rx_header);
-                    DJI_Analysisdata(&right_arm.slide, &rx_header, rx_data);
                 }
             }
         }

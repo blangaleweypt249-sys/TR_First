@@ -1413,6 +1413,16 @@
               <FileType>5</FileType>
               <FilePath>..\user\WifiConfig.h</FilePath>
             </File>
+            <File>
+              <FileName>WpLib.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\WpLib.c</FilePath>
+            </File>
+            <File>
+              <FileName>WpLib.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\user\WpLib.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

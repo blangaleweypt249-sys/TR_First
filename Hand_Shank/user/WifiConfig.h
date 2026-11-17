@@ -7,5 +7,8 @@
 extern osSemaphoreId_t myWIFIsucHandle;
 extern volatile uint8_t wifi_ready;
 
-#endif
+void Wifi_RxStart(void);
+uint8_t Wifi_GetByte(uint8_t *ch, uint32_t timeout);
+void Wifi_RxClear(void);
 
+#endif

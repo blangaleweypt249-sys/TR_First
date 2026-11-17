@@ -1,34 +1,28 @@
-#include  "Up_control.h"
+﻿#include  "Up_control.h"
 #include  "Handle.h"
 #include  "tim.h"
 
-uint8_t arm_set_home;//1: 只标零不发运控
+//标零标志位(1时停止运控手动摆好)
+uint8_t arm_set_home;
 volatile uint8_t arm_boot_cnt;
+//调试滑台位置用
 float slide_pos;
-//左机械臂
+
 Arm left_arm;
-//右机械臂
 Arm right_arm;
-
-//吸块位置：前 4 个左臂、后 4 个右臂；第 1 个 MG5010(度)，后 3 个 RS(弧度)
-static const float suck_block_pos[8] =
-{
-    -124.0f, -1.05f, 0.0f,  1.19f,
-    113.0f,  1.44f, 0.02f, -0.78f,
-};
-
-//遥控按键
-typedef struct
-{
-    uint8_t key;
-    uint8_t key_state;
-} Key;
 
 static Key pd10_key;    //吸块
 static Key pd11_key;    //回零
 static Key pa4_key;     //吸盘开关
 static uint8_t suction_off_flag;   //放下之后等一会全关
 static uint32_t suction_off_tick;
+
+//吸块位置：前 4 个左臂、后 4 个右臂；第 1 个 MG5010(度)，后 3 个 RS(弧度)
+static const float suck_block_pos[8] =
+{
+    -124.0f, -1.05f, 0.0f,  0.90f,
+    113.0f,  1.44f, 0.02f, -0.4f,
+};
 
 //按键：松开那一拍触发一次
 static uint8_t Key_Release(Key *key)
@@ -46,7 +40,7 @@ static uint8_t Key_Release(Key *key)
     return 0U;
 }
 
-//开关：状态一变就触发一次，上电没复位也不影响
+//开关：状态一变就触发一次
 static uint8_t Key_Change(Key *key)
 {
     if (key->key != key->key_state)
@@ -135,9 +129,13 @@ void Arm_Suction(Arm *arm, uint8_t cmd)
 static void Arm_Send(Arm *arm)
 {
     MG5010E_SpeedPos(&arm->joint1, arm->target[0], 25.0f);
+    osDelay(1);
     RS00_Mit(&arm->joint2, 0, arm->target[1], 0, 10, 2, 0, 0);
+    osDelay(1);
     RS05_Mit(&arm->joint3, 0, arm->target[2], 0, 5, 2, 0, 0);
+    osDelay(1);
     RS05_Mit(&arm->joint4, 0, arm->target[3], 0, 10, 2, 0, 0);
+    osDelay(1);
 }
 
 //遥控：PD10 吸块、PD11 回零、PA4 吸盘切换
@@ -300,7 +298,7 @@ void PickTask(void *argument)
       Arm_Suction(&right_arm, 0U);
     }
 
-    osDelay(10);//10ms 一轮，运控 100Hz
+    osDelay(10); 
   }
 
 }

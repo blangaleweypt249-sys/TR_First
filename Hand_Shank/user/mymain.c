@@ -11,6 +11,7 @@ remote_data remoteData;
 #define TX_PAYLOAD_SIZE 14U
 
 static uint8_t tx_frame[TX_FRAME_SIZE]; //0xAA + 14字节数据 + 校验 + 0xBB
+static uint8_t send_fail;               //连续发送失败次数
 static uint8_t beep_tick;
 static uint8_t key_event;
 static volatile uint8_t beep_request;
@@ -49,42 +50,50 @@ static HAL_StatusTypeDef Wifi_SendRawFrame(const uint8_t *frame, uint16_t size)
 
     while ((HAL_GetTick() - start) < 1000U)
     {
-        if (HAL_UART_Receive(&huart6, &ch, 1U, 50U) == HAL_OK)
+        if (Wifi_GetByte(&ch, 10U) == 0U)
         {
-            if (ch == '>')
-            {
-                prompt_count++;
-                if (prompt_count >= 3U)
-                    break;
-            }
-            else
-            {
-                prompt_count = 0U;
-            }
+            continue;
+        }
+        if (ch == '>')
+        {
+            prompt_count++;
+            if (prompt_count >= 3U)
+                break;
+        }
+        else
+        {
+            prompt_count = 0U;
         }
     }
 
     if (prompt_count < 3U)
     {
+        Wifi_RxClear();
         return HAL_TIMEOUT;
     }
 
     if (HAL_UART_Transmit(&huart6, (uint8_t *)frame, size, 1000U) != HAL_OK)
     {
+        Wifi_RxClear();
         return HAL_ERROR;
     }
 
     start = HAL_GetTick();
-    while ((HAL_GetTick() - start) < 300U)
+    while ((HAL_GetTick() - start) < 800U)
     {
-        if (HAL_UART_Receive(&huart6, &ch, 1U, 20U) == HAL_OK)
+        if (Wifi_GetByte(&ch, 10U) == 0U)
         {
-            if (ch == 'K')
-                return HAL_OK;
-            if (ch == 'R')
-                return HAL_ERROR;
+            continue;
+        }
+        if (ch == 'K')
+            return HAL_OK;
+        if (ch == 'R')
+        {
+            Wifi_RxClear();
+            return HAL_ERROR;
         }
     }
+    Wifi_RxClear();
     return HAL_TIMEOUT;
 }
 
@@ -206,16 +215,16 @@ int16_t Rock_trans(uint16_t rock, uint16_t min, uint16_t center, uint16_t max)
 {
     int16_t value = 0;
 
-    if (rock >= center + 30)
+    if (rock >= center + 20) //死区±20，实测静止噪声峰峰26
     {
-        value = (rock - center - 30) * 1000.0f / (max - center - 30);
+        value = (rock - center - 20) * 1000.0f / (max - center - 20);
 
         if (value > 1000)
             value = 1000;
     }
-    else if (rock <= center - 30)
+    else if (rock <= center - 20)
     {
-        value = -(center - 30 - rock) * 1000.0f / (center - 30 - min);
+        value = -(center - 20 - rock) * 1000.0f / (center - 20 - min);
 
         if (value < -1000)
             value = -1000;
@@ -247,8 +256,8 @@ void ScanTask(void *argument)
         }
         //清空比较值
         Beep_Task();
-        remoteData.x = -Rock_trans(adcBuffer[0], 2, 2068, 4095);
-        remoteData.y = -Rock_trans(adcBuffer[1], 2, 2050, 4095);
+        remoteData.x = -Rock_trans(adcBuffer[0], 2, 2052, 4095); //ch0接上下轴，静止2052
+        remoteData.y = -Rock_trans(adcBuffer[1], 2, 2069, 4095); //ch1接左右轴，静止2069
 
         remoteData.shoulder[0] = adcBuffer[2] > 700 ? 1 : 0;
         remoteData.shoulder[1] = adcBuffer[3] > 700 ? 1 : 0;
@@ -295,7 +304,17 @@ void TransmitTask(void *argument)
             tx_frame[16] = 0xBB;
 
             if (Wifi_SendRawFrame(tx_frame, TX_FRAME_SIZE) != HAL_OK)
-                wifi_ready = 0U;
+            {
+                if (++send_fail >= 3U) //连续3帧发不出去才算链路断
+                {
+                    send_fail = 0U;
+                    wifi_ready = 0U;
+                }
+            }
+            else
+            {
+                send_fail = 0U;
+            }
         }
 
         osDelay(5); //200Hz

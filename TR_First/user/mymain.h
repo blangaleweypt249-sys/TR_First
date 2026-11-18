@@ -24,6 +24,7 @@
 
 extern HandleData handle_data;
 extern float speed_k;
+extern float up_distance;
 extern uint8_t receive_handle[17];
 extern uint8_t receive_imu[7];
 extern uint8_t receive_dt35[19];

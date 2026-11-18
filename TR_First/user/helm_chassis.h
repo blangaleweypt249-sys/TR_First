@@ -62,6 +62,7 @@ void helm_calculate(Speed *body_speed,Helm_chassis *helm_chassises);
 void helm_chassis_ready(void);
 float speed_planning(float target,float *last_target,float accel_step,float decel_step);
 float CosKspeed(float set_angle, float actual_angle);
+void car_angle_key(void);
 void car_angle_maintain(Speed *world_speed, Angle *angle);
 void World_to_body(Speed *world_speed, Speed *body_speed, float imu_angle);
 float wrap_pi(float angle);

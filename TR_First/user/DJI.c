@@ -3,7 +3,6 @@
 #include "WpLib.h"
 #include <string.h>
 
-// 静态函数
 static void DJI_Send(DJI_Motor *motor, DJI_Mode mode, float value);
 
 // 命令帧基址，2006 用 0x300，3508 用 0x400
@@ -58,8 +57,8 @@ void DJI_SignZero(DJI_Motor *motor)
     DJI_Send(motor, DJI_sign_zero, 0.0f);
 }
 
-// 命令帧：ID = 基址 | 命令<<4 | 板号
-// data[0]槽位  data[1..4]float  空三个字节
+// 命令帧：ID = 基址 | 模式<<4 | 板号
+// data[0]电机id  data[1..4]float  空三个字节
 static void DJI_Send(DJI_Motor *motor, DJI_Mode mode, float value)
 {
     float_u8 packet_data;
@@ -75,6 +74,7 @@ static void DJI_Send(DJI_Motor *motor, DJI_Mode mode, float value)
         motor->target_position = value;
     }
 
+    //这里取负值和我定义的正方向有关
     packet_data.f = (mode == DJI_SPEED || mode == DJI_POSITION) ? -value : value;
     data[0] = motor->motor_id;
     for (uint8_t i = 0; i < 4; i++)

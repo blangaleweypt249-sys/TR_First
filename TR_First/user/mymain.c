@@ -10,7 +10,7 @@ float last_target_speed[4] = {0.0f};
 Speed world_speed;
 Speed body_speed;
 Helm_chassis helm_chassis;
-float speed_k = 0.0025f; // 最大1m/s
+float speed_k = 0.0025f; // 最大2.5m/s
 float speed_w = 2.0f;
 
 float up_distance = 0;
@@ -31,7 +31,7 @@ void ChassisTask(void *argument)
         Climb_Leg(up_distance);
         if (front_flag == 1)
         {
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+            Leg_Front(0);//前腿收回
         }
         Key_Detect();
 
@@ -42,20 +42,13 @@ void ChassisTask(void *argument)
             world_speed.vy = 0.0f;
             world_speed.vw = 0.0f;
         }
-        else if (handle_key_control)
-        {
-            world_speed.vx = (handle_data.right_key[0] * 2.0f) -
-                             (handle_data.right_key[4] * 2.0f);
-            world_speed.vy = (handle_data.right_key[1] * 2.0f) -
-                             (handle_data.right_key[3] * 2.0f);
-        }
         else
         {
             world_speed.vy = handle_value[1] * speed_k;
             world_speed.vx = handle_value[0] * speed_k;
         }
         car_angle.actual_angle = Imu_angle;
-        car_angle.target_angle = 0.0f;
+        car_angle_key();
         if (osMessageQueueGet(imuQueueHandle, receive_imu, NULL, 0U) == osOK)
         {
             Imu_Analysis(receive_imu);
@@ -65,7 +58,7 @@ void ChassisTask(void *argument)
             DT35_Analysis(receive_dt35);
         }
         World_to_body(&world_speed, &body_speed, Imu_angle);
-        // car_angle_maintain(&body_speed, &car_angle);
+        car_angle_maintain(&body_speed, &car_angle);
         helm_calculate(&body_speed, &helm_chassis);
         osSemaphoreRelease(ChassisCalcHandle);
         osDelay(1);
@@ -131,7 +124,7 @@ void My_init(void)
     Leg_Init();
 
     // 车身保持pid初始化
-    pid_init(&pid_CarAnale, 0.0f, 1.8f, 0.0f, 0.2f, 0.0f, 2.0f, 0.05f);
+    pid_init(&pid_CarAnale, 0.0f, 2.0f, 0.005f, 0.1f, 2.0f, 2.0f, 0.0f);
 
     W25Q128_Init(&w25q128, &hspi6, SPI6_NSS_GPIO_Port, SPI6_NSS_Pin);
 

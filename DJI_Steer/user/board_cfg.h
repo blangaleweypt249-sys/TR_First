@@ -13,7 +13,7 @@
 #define DJI_2    6
 
 #ifndef BOARD_SEL
-#define BOARD_SEL   HELM_4
+#define BOARD_SEL   HELM_1
 
 #endif
 // 可选：HELM_1 HELM_2 HELM_3 HELM_4 DJI_1 DJI_2
@@ -27,7 +27,7 @@
 #elif BOARD_SEL == HELM_2
 #define BOARD_TYPE         BOARD_HELM
 #define BOARD_ID           2U
-#define HELM_OFFSET_DEG    89.645386f
+#define HELM_OFFSET_DEG    90.00f
 #elif BOARD_SEL == HELM_3
 #define BOARD_TYPE         BOARD_HELM
 #define BOARD_ID           3U

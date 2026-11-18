@@ -6,7 +6,7 @@
 
 volatile uint8_t wifi_ready;
 
-extern DMA_HandleTypeDef hdma_usart6_rx; //usart.c 里定义，头文件没导出
+extern DMA_HandleTypeDef hdma_usart6_rx; 
 
 static uint8_t wifi_rx_storage[512];
 static uint8_t wifi_dma[128];

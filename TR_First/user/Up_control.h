@@ -31,12 +31,6 @@ typedef struct
     uint16_t grip_pin;
 } Arm;
 
-typedef struct
-{
-    uint8_t key;
-    uint8_t key_state;
-} Key;
-
 extern Arm left_arm;
 extern Arm right_arm;
 extern volatile uint8_t arm_boot_cnt;    //RS 电机上电 announce 帧计数，6 帧到齐说明都启动好了

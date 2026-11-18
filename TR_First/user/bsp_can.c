@@ -86,18 +86,12 @@ HAL_StatusTypeDef CAN_Transmit(FDCAN_HandleTypeDef *hfdcan, uint8_t type, uint32
 
 static HAL_StatusTypeDef FDCAN_ConfigAndStart(FDCAN_HandleTypeDef *hfdcan)
 {
-    if (HAL_FDCAN_ConfigGlobalFilter(hfdcan,
-                                     FDCAN_ACCEPT_IN_RX_FIFO0,
-                                     FDCAN_ACCEPT_IN_RX_FIFO0,
-                                     FDCAN_FILTER_REMOTE,
-                                     FDCAN_FILTER_REMOTE) != HAL_OK)
+    if (HAL_FDCAN_ConfigGlobalFilter(hfdcan,FDCAN_ACCEPT_IN_RX_FIFO0,FDCAN_ACCEPT_IN_RX_FIFO0,FDCAN_FILTER_REMOTE,FDCAN_FILTER_REMOTE) != HAL_OK)
     {
         return HAL_ERROR;
     }
 
-    if (HAL_FDCAN_ActivateNotification(hfdcan,
-                                        FDCAN_IT_RX_FIFO0_NEW_MESSAGE,
-                                        0U) != HAL_OK)
+    if (HAL_FDCAN_ActivateNotification(hfdcan,FDCAN_IT_RX_FIFO0_NEW_MESSAGE,0U) != HAL_OK)
     {
         return HAL_ERROR;
     }
@@ -105,6 +99,7 @@ static HAL_StatusTypeDef FDCAN_ConfigAndStart(FDCAN_HandleTypeDef *hfdcan)
     return HAL_FDCAN_Start(hfdcan);
 }
 
+//重启CAN总线
 static void RecoverOneFDCAN(FDCAN_HandleTypeDef *hfdcan)
 {
     HAL_FDCAN_Stop(hfdcan);

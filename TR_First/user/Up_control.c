@@ -11,45 +11,35 @@ float slide_pos;
 Arm left_arm;
 Arm right_arm;
 
-static Key pd10_key;    //吸块
-static Key pd11_key;    //回零
-static Key pa4_key;     //吸盘开关
 static uint8_t suction_off_flag;   //放下之后等一会全关
 static uint32_t suction_off_tick;
 
-//吸块位置：前 4 个左臂、后 4 个右臂；第 1 个 MG5010(度)，后 3 个 RS(弧度)
+//吸块位置：前 4 个左臂、后 4 个右臂
+//这个是横着吸低的块
 static const float suck_block_pos[8] =
 {
     -124.0f, -1.05f, 0.0f,  0.90f,
     113.0f,  1.44f, 0.02f, -0.4f,
 };
 
-//按键：松开那一拍触发一次
-static uint8_t Key_Release(Key *key)
+//吸球位置：只有左臂动
+static const float suck_ball_pos[4] =
 {
-    if (key->key == 1U)
-    {
-        key->key_state = 1U;
-        return 0U;
-    }
-    if (key->key_state == 1U)
-    {
-        key->key_state = 0U;
-        return 1U;
-    }
-    return 0U;
-}
+    -106.0f, -1.29f, 0.18f, 0.97f,
+};
 
-//开关：状态一变就触发一次
-static uint8_t Key_Change(Key *key)
+//取球完毕：只有左臂动
+static const float ball_done_pos[4] =
 {
-    if (key->key != key->key_state)
-    {
-        key->key_state = key->key;
-        return 1U;
-    }
-    return 0U;
-}
+    -115.9f, -1.54f, 0.02f, 1.25f,
+};
+
+//取两个天空块
+static const float sky_block_pos[8] =
+{
+    -149.0f, -1.36f, 0.04f, 1.11f,
+    132.1f, 1.48f, -0.04f, -0.45f,
+};
 
 //MG5010E 不会主动上报位置，TIM7 每 200ms 调一次，发读位置命令
 void Arm_PollTimer(void)
@@ -128,36 +118,48 @@ void Arm_Suction(Arm *arm, uint8_t cmd)
 //按目标下发 4 个关节，MG5010 限速 25rpm
 static void Arm_Send(Arm *arm)
 {
-    MG5010E_SpeedPos(&arm->joint1, arm->target[0], 25.0f);
-    osDelay(1);
+    MG5010E_SpeedPos(&arm->joint1, arm->target[0], 20.0f);
+    osDelay(2);
     RS00_Mit(&arm->joint2, 0, arm->target[1], 0, 10, 2, 0, 0);
     osDelay(1);
-    RS05_Mit(&arm->joint3, 0, arm->target[2], 0, 5, 2, 0, 0);
+    RS05_Mit(&arm->joint3, 0, arm->target[2], 0, 8, 2, 0, 0);
     osDelay(1);
     RS05_Mit(&arm->joint4, 0, arm->target[3], 0, 10, 2, 0, 0);
     osDelay(1);
 }
 
-//遥控：PD10 吸块、PD11 回零、PA4 吸盘切换
+//遥控：左侧1 吸块、左侧2 回零、顶部3 吸盘切换
 static void Arm_Key(void)
 {
-    pd10_key.key = handle_data.left_key[0];
-    pd11_key.key = handle_data.left_key[1];
-    pa4_key.key = handle_data.up_key[2];
-
-    if (Key_Release(&pd10_key))
+    if (Handle_KeyRelease(eKeyLeft1))
     {
         Arm_SuckBlock(&left_arm);
         Arm_SuckBlock(&right_arm);
     }
 
-    if (Key_Release(&pd11_key))
+    if (Handle_KeyRelease(eKeyLeft2))
     {
         Arm_Home(&left_arm);
         Arm_Home(&right_arm);
     }
 
-    if (Key_Change(&pa4_key))
+    if (Handle_KeyRelease(eKeyLeft3))//PD12 吸球，只动左臂
+    {
+        Arm_MoveTo(&left_arm, suck_ball_pos);
+    }
+
+    if (Handle_KeyRelease(eKeyLeft4))//PD13 取两个天空块，两个臂都动
+    {
+        Arm_MoveTo(&left_arm, &sky_block_pos[0]);
+        Arm_MoveTo(&right_arm, &sky_block_pos[4]);
+    }
+
+    if (Handle_KeyRelease(eKeyLeft6))//PD15 取球完毕，只动左臂
+    {
+        Arm_MoveTo(&left_arm, ball_done_pos);
+    }
+
+    if (Handle_KeyChange(eKeyUp3))
     {
         if (left_arm.suction == 1U)//吸着 -> 放下
         {
@@ -291,7 +293,7 @@ void PickTask(void *argument)
       DJI_Position(&right_arm.slide, slide_pos);
     }
 
-    if (suction_off_flag && (HAL_GetTick() - suction_off_tick > 1000U))//放下 1 秒后全关
+    if (suction_off_flag && (HAL_GetTick() - suction_off_tick > 5000U))//放下 5 秒后全关
     {
       suction_off_flag = 0U;
       Arm_Suction(&left_arm, 0U);

@@ -11,5 +11,6 @@ typedef union
 extern float Imu_angle;
 extern int imu_num[3];
 void Imu_Analysis(uint8_t *data);
+void Imu_ClearYaw(void);
 
 #endif

@@ -5,10 +5,13 @@
 #include "DJI.h"
 #include "cmsis_os.h"
 
+//前腿PB7
 
 void Leg_Init(void);
 void Leg_Clear(void);
 void Climb_Leg(float distance);
+void Leg_Front(uint8_t out);    //前腿气缸 1 伸出
+void Leg_Mid(uint8_t out);      //中腿气缸 1 伸出
 
 
 extern uint8_t front_flag;

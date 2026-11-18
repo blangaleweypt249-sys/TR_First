@@ -2,42 +2,58 @@
 #include "usart.h"
 #include <string.h>
 
-uint8_t receive_handle[17];
-
 static uint8_t handle_stream[64];
 static uint16_t handle_stream_len;
-
+uint8_t receive_handle[17];
 
 HandleData handle_data;
 volatile uint8_t wifi_ok;
 bool handle_lock;
-bool handle_key_control;
-static uint8_t handle_lock_switch_last;
-static uint8_t handle_key_switch_last;
 static uint8_t handle_switch_init;
+
+HandleKey handle_key[27U];
+
+//松开那一拍触发一次
+uint8_t Handle_KeyRelease(HandleKeyId id)
+{
+    if (handle_key[id].key == 1U)
+    {
+        handle_key[id].state = 1U;
+        return 0U;
+    }
+    if (handle_key[id].state == 1U)
+    {
+        handle_key[id].state = 0U;
+        return 1U;
+    }
+    return 0U;
+}
+
+//状态一变触发一次
+uint8_t Handle_KeyChange(HandleKeyId id)
+{
+    if (handle_key[id].key != handle_key[id].state)
+    {
+        handle_key[id].state = handle_key[id].key;
+        return 1U;
+    }
+    return 0U;
+}
 
 void Key_Detect(void)
 {
-    if (handle_switch_init == 0U && handle_data.num[0] != 0)
+    if (handle_switch_init == 0U)//第一帧只对齐按键状态，不触发
     {
-        handle_lock_switch_last = handle_data.up_key[0];
-        handle_key_switch_last = handle_data.up_key[1];
+        if (handle_data.num[0] == 0U)
+            return;
+        for (uint8_t i = 0U; i < 27; i++)
+            handle_key[i].state = handle_key[i].key;
         handle_switch_init = 1U;
+        return;
     }
-    else
-    {
-        if (handle_data.up_key[0] != handle_lock_switch_last)
-        {
-            handle_lock = !handle_lock;
-            handle_lock_switch_last = handle_data.up_key[0];
-        }
 
-        if (handle_data.up_key[1] != handle_key_switch_last)
-        {
-            handle_key_control = !handle_key_control;
-            handle_key_switch_last = handle_data.up_key[1];
-        }
-    }
+    if (Handle_KeyChange(eKeyUp1))//锁车开关
+        handle_lock = !handle_lock;
 }
 
 //流式缓存
@@ -82,7 +98,7 @@ static void Wifi_Init(void)
     for (uint8_t retry = 0; retry < 3; retry++)
     {
         wifi_ok = 0;
-        HAL_UART_Transmit(&huart9, (uint8_t *)ap_cmd, sizeof(ap_cmd) - 1U, 1000U);
+        HAL_UART_Transmit_DMA(&huart9, (uint8_t *)ap_cmd, sizeof(ap_cmd) - 1U);
         for (uint8_t wait = 0; wait < 100; wait++)
         {
             if (wifi_ok)
@@ -96,7 +112,7 @@ static void Wifi_Init(void)
     for (uint8_t retry = 0; retry < 3; retry++)
     {
         wifi_ok = 0;
-        HAL_UART_Transmit(&huart9, (uint8_t *)server_cmd, sizeof(server_cmd) - 1U, 1000U);
+        HAL_UART_Transmit_DMA(&huart9, (uint8_t *)server_cmd, sizeof(server_cmd) - 1U);
         for (uint8_t wait = 0; wait < 100; wait++)
         {
             if (wifi_ok)
@@ -154,6 +170,7 @@ void Handle_Analysis(uint8_t *data)
             for (uint8_t i = 0; i < 27U; i++)
             {
                 uint8_t pressed = (uint8_t)((data[11U + (i >> 3)] >> (i & 7U)) & 1U);
+                handle_key[i].key = pressed;
                 if (i < 6U)
                     handle_data.up_key[i] = pressed;        //顶部6个开关
                 else if (i < 15U)

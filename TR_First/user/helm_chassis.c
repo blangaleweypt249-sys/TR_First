@@ -184,6 +184,7 @@ void Helm_Calibration(void)
     osSemaphoreRelease(ChassisReadyHandle);
 }
 
+//加上速度规划实测效果很一般不如不加，以后再试试
 float speed_planning(float target, float *last_target, float accel_step, float decel_step)
 {
     float current = *last_target;
@@ -238,8 +239,20 @@ void World_to_body(Speed *world_speed, Speed *body_speed, float imu_angle)
     body_speed->vw = world_speed->vw;
 }
 
+//肩键：按一次车身目标角叠 90°，左肩 PA7 +，右肩 PC1 -
+void car_angle_key(void)
+{
+    static uint8_t shoulder_last;
+
+    if (handle_data.shoulder[0] && (shoulder_last & 0x01U) == 0U)
+        car_angle.target_angle = wrap_pi(car_angle.target_angle + PI / 2.0f);
+    if (handle_data.shoulder[1] && (shoulder_last & 0x02U) == 0U)
+        car_angle.target_angle = wrap_pi(car_angle.target_angle - PI / 2.0f);
+    shoulder_last = (uint8_t)(handle_data.shoulder[0] | (handle_data.shoulder[1] << 1));
+}
+
 void car_angle_maintain(Speed *world_speed, Angle *angle)
 {
-    angle->angle_out = calc_pid(&pid_CarAnale, angle->actual_angle, angle->target_angle);
+    angle->angle_out = calc_pid(&pid_CarAnale, 0.0f, wrap_pi(angle->target_angle - angle->actual_angle));
     world_speed->vw = angle->angle_out;
 }

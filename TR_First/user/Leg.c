@@ -70,7 +70,8 @@ void ClimbTask(void *argument)
 {
   static uint8_t front_out;   //前腿 1 伸出
   static uint8_t mid_out;     //中腿 1 伸出
-  float speed;
+  static float speed_cmd;     //规划后的当前速度
+  float speed;                //按键给的目标速度
 
   (void)argument;
   for(;;)
@@ -100,21 +101,23 @@ void ClimbTask(void *argument)
     {
       front_out = 1U;
       Leg_Front(1U);
-      up_distance = 20.0f;
+      osDelay(170);
+      up_distance = 22.0f;
     }
     //PE3 前腿伸 + 后腿40
     if (Handle_KeyRelease(eKeyRight2))
     {
       front_out = 1U;
       Leg_Front(1U);
-      up_distance = 40.0f;
+      osDelay(170);
+      up_distance = 40.5f;
     }
     //PE4 前腿收 + 后腿20
     if (Handle_KeyRelease(eKeyRight3))
     {
       front_out = 0U;
       Leg_Front(0U);
-      up_distance = 20.0f;
+      up_distance = 22.0f;
     }
     //PE5 前腿收 + 后腿0
     if (Handle_KeyRelease(eKeyRight4))
@@ -125,14 +128,17 @@ void ClimbTask(void *argument)
     }
 
     if (handle_key[eKeyDown1].key)
-        speed = 1.0f;
+        speed = 0.5f;
     else if (handle_key[eKeyDown2].key)
-        speed = -1.0f;
+        speed = -0.5f;
     else
         speed = 0.0f;
 
-    DJI_Speed(&leg_Left_2006, speed * ms_to_rpm);
-    DJI_Speed(&leg_Right_2006, -speed * ms_to_rpm);//镜像导致
+    //斜率规划：1kHz 下一拍走 0.001 = 1m/s² 加速，0.004 = 4m/s² 减速
+    speed_cmd = speed_planning(speed, &speed_cmd, 0.001f, 0.004f);
+
+    DJI_Speed(&leg_Left_2006, -speed_cmd * ms_to_rpm);
+    DJI_Speed(&leg_Right_2006, speed_cmd * ms_to_rpm);//镜像导致
 
     osDelay(5);
   }

@@ -54,7 +54,10 @@ bool Imu_ReadData(const uint8_t data[8])
 
 void Imu_Calc(void)
 {
-    float gyro_speed = imu_100A.gyro_speed - imu_100A.basic_speed;
+    static float speed_hist[3];
+    static uint8_t speed_idx;   //写指针 0..2
+    static uint8_t speed_n;     //已经填了几个
+    float a, b, c, gyro_speed = imu_100A.gyro_speed - imu_100A.basic_speed;
 
     if (!has_last_speed)
     {
@@ -63,10 +66,28 @@ void Imu_Calc(void)
         return;
     }
 
-    if (fabsf(gyro_speed) < 0.08f)
+    //3点中值，剔掉单点尖峰
+    speed_hist[speed_idx] = gyro_speed;
+    speed_idx = (uint8_t)((speed_idx + 1U) % 3U);
+    if (speed_n < 3U)
+        speed_n++;
+    if (speed_n == 3U)
     {
-        gyro_speed = 0.0f;
+        a = speed_hist[0];
+        b = speed_hist[1];
+        c = speed_hist[2];
+        if (a > b)
+            gyro_speed = (b > c) ? b : ((a > c) ? c : a);
+        else
+            gyro_speed = (a > c) ? a : ((b > c) ? c : b);
     }
+
+    //静置时慢跟零偏，温度漂了也跟得住
+    if (fabsf(gyro_speed) < 0.05f)
+        imu_100A.basic_speed += gyro_speed * 0.0005f;
+
+    if (fabsf(gyro_speed) < 0.03f)
+        gyro_speed = 0.0f;
     yaw = wrap_angle(yaw + (gyro_speed + last_gyro_speed) * 0.5f * GYRO_DT_SEC);
     last_gyro_speed = gyro_speed;
 }

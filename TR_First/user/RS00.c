@@ -33,7 +33,7 @@ void RS00_Init(RS00 *Motor, bool zero_flag, FDCAN_HandleTypeDef *hcan, uint16_t 
     Interpolation_Init(&Motor->mit.position_interpolation);
     Motor->mit.position_interpolation.last_update_ms = HAL_GetTick();
 
-    RS00_SetActiveReporting(Motor);//0x18 开主动上报，不开就只有发运控才有反馈
+    RS00_SetActiveReporting(Motor);//0x18 开主动上报，周期在函数里先写成 30ms
     osDelay(20);
 
     if (zero_flag == 1)//手动标零：臂摆到零位再烧，标完把 ARM_SET_HOME 改回 0
@@ -111,6 +111,7 @@ void RS00_SetMode(RS00 *rs00, run_mode mode)
 void RS00_SetActiveReporting(RS00 *rs00)
 {
     uint8_t motor_active_reporting[7] = {1, 2, 3, 4, 5, 6, 1};
+    RS00_WriteParameter(rs00, 0x7026, 5);   //上报间隔 10+(5-1)*5=30ms，先写周期再开上报
     rs00->mode = 0x18;
     rs00->mst_id = 0x00;
     rs00->id = ((uint32_t)rs00->mode << 24) + ((uint32_t)rs00->mst_id << 8) + ((uint32_t)rs00->motor_id);

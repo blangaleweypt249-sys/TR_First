@@ -13,7 +13,7 @@
 #define DJI_2    6
 
 #ifndef BOARD_SEL
-#define BOARD_SEL   HELM_1
+#define BOARD_SEL   DJI_1
 
 #endif
 // 可选：HELM_1 HELM_2 HELM_3 HELM_4 DJI_1 DJI_2
@@ -23,7 +23,7 @@
 #if   BOARD_SEL == HELM_1
 #define BOARD_TYPE         BOARD_HELM
 #define BOARD_ID           1U
-#define HELM_OFFSET_DEG    0.972748f
+#define HELM_OFFSET_DEG    0.97f
 #elif BOARD_SEL == HELM_2
 #define BOARD_TYPE         BOARD_HELM
 #define BOARD_ID           2U
@@ -35,7 +35,7 @@
 #elif BOARD_SEL == HELM_4
 #define BOARD_TYPE         BOARD_HELM
 #define BOARD_ID           4U
-#define HELM_OFFSET_DEG    -90.435791f
+#define HELM_OFFSET_DEG    -90.4f
 #elif BOARD_SEL == DJI_1
 #define BOARD_TYPE         BOARD_DJI
 #define BOARD_ID           5U
@@ -57,7 +57,7 @@
 
 // 电机数量根据板子类型来定
 #if BOARD_TYPE == BOARD_DJI
-#define DJI_MOTOR_NUM      2U
+#define DJI_MOTOR_NUM      3U
 #else
 #define DJI_MOTOR_NUM      1U
 #endif

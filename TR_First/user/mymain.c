@@ -124,7 +124,7 @@ void My_init(void)
     Leg_Init();
 
     // 车身保持pid初始化
-    pid_init(&pid_CarAnale, 0.0f, 2.0f, 0.005f, 0.1f, 2.0f, 2.0f, 0.0f);
+    pid_init(&pid_CarAnale, 0.0f, 6.0f, 0.020f, 0.08f, 4.0f, 1.5f, 0.02f);
 
     W25Q128_Init(&w25q128, &hspi6, SPI6_NSS_GPIO_Port, SPI6_NSS_Pin);
 

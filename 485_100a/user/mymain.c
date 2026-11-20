@@ -141,6 +141,8 @@ bool Imu_calibration(void)
     static uint32_t start_tick;
     static uint32_t sample_count;
     static float speed_sum;
+    static float speed_min;
+    static float speed_max;
     if (finished)
     {
         return true;
@@ -152,12 +154,24 @@ bool Imu_calibration(void)
         start_tick = osKernelGetTickCount();
         speed_sum = 0.0f;
         sample_count = 0U;
+        speed_min = 100.0f;
+        speed_max = -100.0f;
     }
 
     speed_sum += imu_100A.gyro_speed;
     sample_count++;
+    if (imu_100A.gyro_speed < speed_min)
+        speed_min = imu_100A.gyro_speed;
+    if (imu_100A.gyro_speed > speed_max)
+        speed_max = imu_100A.gyro_speed;
     if ((osKernelGetTickCount() - start_tick) < 3000U)
     {
+        return false;
+    }
+
+    if ((speed_max - speed_min) > 0.5f) //标定期间动了，重来
+    {
+        started = false;
         return false;
     }
 

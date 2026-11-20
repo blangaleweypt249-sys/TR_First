@@ -1,4 +1,4 @@
-﻿#include  "Up_control.h"
+#include  "Up_control.h"
 #include  "Handle.h"
 #include  "tim.h"
 
@@ -13,32 +13,50 @@ Arm right_arm;
 
 static uint8_t suction_off_flag;   //放下之后等一会全关
 static uint32_t suction_off_tick;
+static uint8_t vert_arm_flag;      //竖排：0 下一个按左臂，1 下一个按右臂
+static uint8_t vert_stage;         //右臂分段：1 等关节1/2走到一半
+static float vert_j1_start;        //右臂关节1起步位置
+static float vert_j2_start;        //右臂关节2起步位置
 
 //吸块位置：前 4 个左臂、后 4 个右臂
 //这个是横着吸低的块
 static const float suck_block_pos[8] =
 {
-    -124.0f, -1.05f, 0.0f,  0.90f,
-    113.0f,  1.44f, 0.02f, -0.4f,
+    -111.6f, -0.74f, -0.05f,  -0.95f,
+    102.5f,  1.06f, 0.04f, -0.7f,
 };
 
 //吸球位置：只有左臂动
 static const float suck_ball_pos[4] =
 {
-    -106.0f, -1.29f, 0.18f, 0.97f,
+    -68.0f, -0.73f, -0.123f, -1.08f,
 };
 
 //取球完毕：只有左臂动
 static const float ball_done_pos[4] =
 {
-    -115.9f, -1.54f, 0.02f, 1.25f,
+    -68.0f, -0.73f, -0.123f, 0.00f,
 };
 
 //取两个天空块
 static const float sky_block_pos[8] =
 {
-    -149.0f, -1.36f, 0.04f, 1.11f,
-    132.1f, 1.48f, -0.04f, -0.45f,
+    -140.5f, -0.88f, 0.03f, -1.6f,
+    126.6f, 1.1f, -0.006f, -0.38f,
+};
+
+//竖直排列
+static const float vertical_pos[8] =
+{
+    -146.7f, -0.51f, -0.08f, 1.07f,
+    125.8f, 1.78f, -1.58f, -1.35f,
+};
+
+//吸取二层
+static const float layer2_pos[8] =
+{
+    -83.8f, -0.56f, -0.045f, 0.20f,
+    69.0f, 0.73f, 0.0f, 0.78f,
 };
 
 //MG5010E 不会主动上报位置，TIM7 每 200ms 调一次，发读位置命令
@@ -115,32 +133,51 @@ void Arm_Suction(Arm *arm, uint8_t cmd)
     }
 }
 
-//按目标下发 4 个关节，MG5010 限速 25rpm
+//按目标下发 4 个关节，MG5010 限速 20rpm
 static void Arm_Send(Arm *arm)
 {
     MG5010E_SpeedPos(&arm->joint1, arm->target[0], 20.0f);
     osDelay(2);
-    RS00_Mit(&arm->joint2, 0, arm->target[1], 0, 10, 2, 0, 0);
+    RS00_Mit(&arm->joint2, 0, arm->target[1], 0, 16, 4, 0, 0);
     osDelay(1);
     RS05_Mit(&arm->joint3, 0, arm->target[2], 0, 8, 2, 0, 0);
     osDelay(1);
-    RS05_Mit(&arm->joint4, 0, arm->target[3], 0, 10, 2, 0, 0);
+    RS05_Mit(&arm->joint4, 0, arm->target[3], 0, 15, 2, 0, 0);
     osDelay(1);
+}
+
+//竖排第一次按：右臂先动关节1、2，走到目标一半再放末端两个
+static void Arm_VertStage(void)
+{
+    if (vert_stage == 0U)
+        return;
+
+    if (fabsf(right_arm.joint1.pos - vert_j1_start) >= 0.3f * fabsf(vertical_pos[4] - vert_j1_start) &&
+        fabsf(right_arm.joint2.feedback.pos_fed - vert_j2_start) >= 0.3f * fabsf(vertical_pos[5] - vert_j2_start))
+    {
+        right_arm.target[2] = vertical_pos[6];
+        right_arm.target[3] = vertical_pos[7];
+        vert_stage = 0U;
+    }
 }
 
 //遥控：左侧1 吸块、左侧2 回零、顶部3 吸盘切换
 static void Arm_Key(void)
 {
+    Arm_VertStage();
+
     if (Handle_KeyRelease(eKeyLeft1))
     {
         Arm_SuckBlock(&left_arm);
         Arm_SuckBlock(&right_arm);
     }
 
-    if (Handle_KeyRelease(eKeyLeft2))
+    if (Handle_KeyRelease(eKeyLeft2))//PD11 回零，同时把竖排的计数清掉
     {
         Arm_Home(&left_arm);
         Arm_Home(&right_arm);
+        vert_arm_flag = 0U;   //下次竖排还是从左臂开始
+        vert_stage = 0U;
     }
 
     if (Handle_KeyRelease(eKeyLeft3))//PD12 吸球，只动左臂
@@ -157,6 +194,33 @@ static void Arm_Key(void)
     if (Handle_KeyRelease(eKeyLeft6))//PD15 取球完毕，只动左臂
     {
         Arm_MoveTo(&left_arm, ball_done_pos);
+    }
+
+    //竖直排列：PA11 第一次左臂（整条一起动）、第二次右臂（分段）；PA12 滑台两档
+    if (Handle_KeyRelease(eKeyLeft8))
+    {
+        if (vert_arm_flag == 0U)
+        {
+            Arm_MoveTo(&left_arm, &vertical_pos[0]);
+            vert_arm_flag = 1U;
+        }
+        else
+        {
+            vert_j1_start = right_arm.joint1.pos;
+            vert_j2_start = right_arm.joint2.feedback.pos_fed;
+            right_arm.target[0] = vertical_pos[4];   //关节1、2 先走
+            right_arm.target[1] = vertical_pos[5];
+            right_arm.target[2] = right_arm.joint3.feedback.pos_fed;  //末端先保持
+            right_arm.target[3] = right_arm.joint4.feedback.pos_fed;
+            vert_stage = 1U;
+            vert_arm_flag = 0U;
+        }
+    }
+
+    if (Handle_KeyRelease(eKeyLeft7))//PA8 吸取二层，两个臂都动
+    {
+        Arm_MoveTo(&left_arm, &layer2_pos[0]);
+        Arm_MoveTo(&right_arm, &layer2_pos[4]);
     }
 
     if (Handle_KeyChange(eKeyUp3))
@@ -239,6 +303,8 @@ void Up_Init(void)
 
     //右臂底座 2006 滑台，和腿共用 board 6
     DJI_Init(&right_arm.slide, &hfdcan2, DJI_M2006, 6, 3);
+
+    DJI_SignZero(&right_arm.slide);
     right_arm.has_slide = 1U;
 
     if (arm_set_home == 1)//MG5010 把当前位置设成原点，断电重上电才生效
@@ -293,7 +359,7 @@ void PickTask(void *argument)
       DJI_Position(&right_arm.slide, slide_pos);
     }
 
-    if (suction_off_flag && (HAL_GetTick() - suction_off_tick > 5000U))//放下 5 秒后全关
+    if (suction_off_flag && (HAL_GetTick() - suction_off_tick > 10000U))//放下 10 秒后全关
     {
       suction_off_flag = 0U;
       Arm_Suction(&left_arm, 0U);

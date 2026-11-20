@@ -96,10 +96,10 @@ void helm_calculate(Speed *body_speed, Helm_chassis *helm_chassises)
         {
             helm_chassises->helm_speed[i] = 0.0f;
         }
-        helm_chassises->helm_angle[0] = -atan2f(+half_dy, -half_dx);
-        helm_chassises->helm_angle[1] = -atan2f(+half_dy, +half_dx);
-        helm_chassises->helm_angle[2] = -atan2f(-half_dy, +half_dx);
-        helm_chassises->helm_angle[3] = -atan2f(-half_dy, -half_dx);
+        helm_chassises->helm_angle[0] = atan2f(+half_dy, -half_dx);
+        helm_chassises->helm_angle[1] = atan2f(+half_dy, +half_dx);
+        helm_chassises->helm_angle[2] = atan2f(-half_dy, +half_dx);
+        helm_chassises->helm_angle[3] = atan2f(-half_dy, -half_dx);
     }
     else
     {

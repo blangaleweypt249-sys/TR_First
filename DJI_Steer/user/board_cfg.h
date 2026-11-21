@@ -13,7 +13,7 @@
 #define DJI_2    6
 
 #ifndef BOARD_SEL
-#define BOARD_SEL   DJI_1
+#define BOARD_SEL   DJI_2
 
 #endif
 // 可选：HELM_1 HELM_2 HELM_3 HELM_4 DJI_1 DJI_2

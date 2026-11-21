@@ -3,14 +3,14 @@
 #include "usart.h"
 #include "WifiConfig.h"
 #include <string.h>
+#include <math.h>
 
 int16_t adcBuffer[4];
 remote_data remoteData;
 
-#define TX_FRAME_SIZE 17U
 #define TX_PAYLOAD_SIZE 14U
 
-static uint8_t tx_frame[TX_FRAME_SIZE]; //0xAA + 14字节数据 + 校验 + 0xBB
+static uint8_t tx_frame[17]; //0xAA + 14字节数据 + 校验 + 0xBB
 static uint8_t send_fail;               //连续发送失败次数
 static uint8_t beep_tick;
 static uint8_t key_event;
@@ -40,17 +40,20 @@ static HAL_StatusTypeDef Wifi_SendRawFrame(const uint8_t *frame, uint16_t size)
     const char raw_cmd[] = "AT+SKTSENDRAW=0,17\r\n";
     uint8_t ch;
     uint8_t prompt_count = 0U;
-    uint32_t start = HAL_GetTick();
+    uint32_t start;
+
+    Wifi_RxClear();//先倒掉上一次残留的 ">>>"/"OK"，不然提示符会数错，数据发不出去
 
     if (HAL_UART_Transmit(&huart6, (uint8_t *)raw_cmd,
-                          sizeof(raw_cmd) - 1U, 1000U) != HAL_OK)
+                          sizeof(raw_cmd) - 1U, 100U) != HAL_OK)
     {
         return HAL_ERROR;
     }
 
-    while ((HAL_GetTick() - start) < 1000U)
+    start = HAL_GetTick();
+    while ((HAL_GetTick() - start) < 100U)
     {
-        if (Wifi_GetByte(&ch, 10U) == 0U)
+        if (Wifi_GetByte(&ch, 5U) == 0U)
         {
             continue;
         }
@@ -68,37 +71,34 @@ static HAL_StatusTypeDef Wifi_SendRawFrame(const uint8_t *frame, uint16_t size)
 
     if (prompt_count < 3U)
     {
-        Wifi_RxClear();
         return HAL_TIMEOUT;
     }
 
-    if (HAL_UART_Transmit(&huart6, (uint8_t *)frame, size, 1000U) != HAL_OK)
+    if (HAL_UART_Transmit(&huart6, (uint8_t *)frame, size, 100U) != HAL_OK)
     {
-        Wifi_RxClear();
         return HAL_ERROR;
     }
 
     start = HAL_GetTick();
-    while ((HAL_GetTick() - start) < 800U)
+    while ((HAL_GetTick() - start) < 200U)
     {
-        if (Wifi_GetByte(&ch, 10U) == 0U)
+        if (Wifi_GetByte(&ch, 5U) == 0U)
         {
             continue;
         }
         if (ch == 'K')
             return HAL_OK;
         if (ch == 'R')
-        {
-            Wifi_RxClear();
             return HAL_ERROR;
-        }
     }
-    Wifi_RxClear();
     return HAL_TIMEOUT;
 }
 
 //消抖
 
+//按键序号和左/右/上/下的对应
+//22~26 是五位开关 WS-1001，公共端接 GND，各脚 10K 上拉
+//  22=PD3 左  23=PD4 中间按下  24=PD5 下  25=PD6 右  26=PD7 上
 static GPIO_TypeDef *key_port[27] = {
     GPIOA, GPIOA, GPIOA, GPIOA, GPIOA, GPIOC,
     GPIOD, GPIOD, GPIOD, GPIOD, GPIOD, GPIOD,
@@ -210,31 +210,56 @@ static void Beep_Task(void)
     }
 }
 
-//死区控制和映射 -1000到1000
-int16_t Rock_trans(uint16_t rock, uint16_t min, uint16_t center, uint16_t max)
+//单轴 ADC 归一到 -1~1
+static float Rock_Axis(uint16_t rock, uint16_t center, uint16_t min, uint16_t max)
 {
-    int16_t value = 0;
+    float k;
 
-    if (rock >= center + 20) //死区±20，实测静止噪声峰峰26
+    if (rock >= center)
     {
-        value = (rock - center - 20) * 1000.0f / (max - center - 20);
-
-        if (value > 1000)
-            value = 1000;
+        k = (float)(rock - center) / (float)(max - center);
+        if (k > 1.0f)
+            k = 1.0f;
     }
-    else if (rock <= center - 20)
+    else
     {
-        value = -(center - 20 - rock) * 1000.0f / (center - 20 - min);
-
-        if (value < -1000)
-            value = -1000;
+        k = -(float)(center - rock) / (float)(center - min);
+        if (k < -1.0f)
+            k = -1.0f;
     }
 
-    return value;
+    return k;
+}
+
+//圆形死区 + 三次曲线，输出 -1000~1000
+static void Rock_Shape(float x, float y, float *out_x, float *out_y)
+{
+    const float dead = 0.02f; //死区半径，约 40 个 ADC 码，和原来一样大
+    const float expo = 0.3f;  //非线性程度：0 线性，1 全是三次项
+    float mag = sqrtf(x * x + y * y);
+    float k;
+
+    if (mag <= dead)//斜推也只按圆的半径算，斜角不会再比单轴灵
+    {
+        *out_x = 0.0f;
+        *out_y = 0.0f;
+        return;
+    }
+
+    k = (mag - dead) / (1.0f - dead);//死区外重新映射到 0~1
+    if (k > 1.0f)
+        k = 1.0f;
+
+    k = (1.0f - expo) * k + expo * k * k * k;//三次曲线
+
+    *out_x = x / mag * k * 1000.0f;
+    *out_y = y / mag * k * 1000.0f;
 }
 
 void ScanTask(void *argument)
 {
+    uint16_t adc_f[4]; //滤波后的摇杆/肩键值
+
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);//启动pwm定时器
     __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 0U);
 
@@ -244,9 +269,14 @@ void ScanTask(void *argument)
         key_count[i] = 0U;
     }
 
+    HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adcBuffer, 4);
+    osDelay(2);//等第一次转换完成，不然上电第一帧读到0，摇杆会满量程
+
+    for (uint8_t i = 0; i < 4U; i++)
+        adc_f[i] = (uint16_t)adcBuffer[i];
+
     for (;;)
     {
-        HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adcBuffer, 4);
         Key_Scan();
         if (key_event)
         {
@@ -256,14 +286,27 @@ void ScanTask(void *argument)
         }
         //清空比较值
         Beep_Task();
-        remoteData.x = -Rock_trans(adcBuffer[0], 2, 2052, 4095); //ch0接上下轴，静止2052
-        remoteData.y = -Rock_trans(adcBuffer[1], 2, 2069, 4095); //ch1接左右轴，静止2069
 
-        remoteData.shoulder[0] = adcBuffer[2] > 700 ? 1 : 0;
-        remoteData.shoulder[1] = adcBuffer[3] > 700 ? 1 : 0;
+        //取上一拍已经转完的采样，再做1/4新值滤波，压掉静止噪声
+        for (uint8_t i = 0; i < 4U; i++)
+            adc_f[i] = (uint16_t)((adc_f[i] * 3U + (uint16_t)adcBuffer[i]) >> 2);
 
-        osMessageQueuePut(ScanToTransHandle, &remoteData, 0U, 0U);
-            
+        //ch0 接上下轴，静止 2052；ch1 接左右轴，静止 2069
+        Rock_Shape(-Rock_Axis(adc_f[0], 2052, 2, 4095),
+                   -Rock_Axis(adc_f[1], 2069, 2, 4095),
+                   &remoteData.x, &remoteData.y);
+
+        remoteData.shoulder[0] = adc_f[2] > 700 ? 1 : 0;
+        remoteData.shoulder[1] = adc_f[3] > 700 ? 1 : 0;
+
+        if (osMessageQueuePut(ScanToTransHandle, &remoteData, 0U, 0U) != osOK)//队列满就丢旧值，只留最新状态
+        {
+            osMessageQueueReset(ScanToTransHandle);
+            osMessageQueuePut(ScanToTransHandle, &remoteData, 0U, 0U);
+        }
+
+        HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adcBuffer, 4);//启动下一次，下一拍再取
+
         osDelay(1);
     }
 }
@@ -303,7 +346,7 @@ void TransmitTask(void *argument)
             tx_frame[15] = sum;
             tx_frame[16] = 0xBB;
 
-            if (Wifi_SendRawFrame(tx_frame, TX_FRAME_SIZE) != HAL_OK)
+            if (Wifi_SendRawFrame(tx_frame, 17) != HAL_OK)
             {
                 if (++send_fail >= 3U) //连续3帧发不出去才算链路断
                 {

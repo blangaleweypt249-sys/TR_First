@@ -17,7 +17,6 @@ typedef struct
 
 }remote_data;
 
-int16_t Rock_trans(uint16_t rock, uint16_t min, uint16_t center, uint16_t max);
 void Beep_Request(uint8_t count);
 void Beep_SetAlarm(uint8_t enable);
 

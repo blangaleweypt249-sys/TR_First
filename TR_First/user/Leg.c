@@ -96,6 +96,15 @@ void ClimbTask(void *argument)
         up_distance = 40.0f;
     }
 
+    //PD4 五位开关中间：后腿 18 和 0 互切
+    if (Handle_KeyRelease(eKeyOk))
+    {
+      if (up_distance > 9.0f)
+        up_distance = 0.0f;
+      else
+        up_distance = 18.0f;
+    }
+
     //PE6 前腿伸 + 后腿20
     if (Handle_KeyRelease(eKeyRight1))
     {

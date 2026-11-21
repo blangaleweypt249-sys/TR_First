@@ -61,6 +61,7 @@ uint8_t Wifi_GetByte(uint8_t *ch, uint32_t timeout)
 //发失败时清掉残留，免得半截 ">>>" 影响下一帧
 void Wifi_RxClear(void)
 {
+    Wifi_RxPoll();//先把 DMA 里已经到的字节搬进环形队列，再一起清掉
     RingBuffer_Clear(&wifi_rx);
 }
 

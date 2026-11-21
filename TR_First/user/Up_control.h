@@ -27,12 +27,30 @@ typedef struct
     uint16_t pump_pin;
     GPIO_TypeDef *vac_port;     //真空阀
     uint16_t vac_pin;
-    GPIO_TypeDef *grip_port;    //夹爪(电磁阀)
-    uint16_t grip_pin;
 } Arm;
+
+//机械臂动作状态
+typedef enum
+{
+    eUpIdle = 0,
+    eUpStoreSky,        //存天空块
+    eUpSuckGround1,     //吸取地面1层块
+    eUpVertical,        //竖直排列
+}Up_State;
+
+//分段动作：先动前一段，走到 90% 再放下一段
+typedef struct
+{
+    uint8_t stage;      //分段阶段
+    float joint1_start; //关节1起步位置
+    float joint2_start; //关节2起步位置
+    float joint3_start; //关节3起步位置
+    float joint4_start; //关节4起步位置
+}Arm_Stage;
 
 extern Arm left_arm;
 extern Arm right_arm;
+extern Up_State up_state;
 extern volatile uint8_t arm_boot_cnt;    //RS 电机上电 announce 帧计数，6 帧到齐说明都启动好了
 
 void Up_Init(void);
@@ -43,7 +61,6 @@ void Arm_Suction(Arm *arm, uint8_t cmd);    //0 全关 1 吸取 2 放下
 void Arm_Suck(Arm *arm);                    //吸取：气泵开、真空阀关
 void Arm_Release(Arm *arm);                 //放下：气泵关、真空阀开
 void Arm_Off(Arm *arm);                     //全关
-void Arm_Grip(Arm *arm, uint8_t on);        //夹爪
 void Arm_PollTimer(void);                   //TIM7 回调里调，读大臂电机位置
 
 #endif

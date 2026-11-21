@@ -158,30 +158,10 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>gpio_state1</ItemText>
-        </Ww>
-        <Ww>
-          <count>1</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>gpio_state2</ItemText>
-        </Ww>
-        <Ww>
-          <count>2</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>gpio_state3</ItemText>
-        </Ww>
-        <Ww>
-          <count>3</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>gpio_state4</ItemText>
-        </Ww>
-        <Ww>
-          <count>4</count>
-          <WinNumber>1</WinNumber>
           <ItemText>left_arm</ItemText>
         </Ww>
         <Ww>
-          <count>5</count>
+          <count>1</count>
           <WinNumber>1</WinNumber>
           <ItemText>right_arm</ItemText>
         </Ww>
@@ -200,62 +180,72 @@
         <Ww>
           <count>2</count>
           <WinNumber>2</WinNumber>
-          <ItemText>act_flag</ItemText>
+          <ItemText>Device_Offline_State</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>2</WinNumber>
-          <ItemText>Device_Offline_State</ItemText>
+          <ItemText>slide_pos</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>2</WinNumber>
-          <ItemText>jiazhua</ItemText>
+          <ItemText>distance</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>2</WinNumber>
-          <ItemText>left_arm_2</ItemText>
+          <ItemText>distance</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>2</WinNumber>
-          <ItemText>right_arm_2</ItemText>
+          <ItemText>up_distance</ItemText>
         </Ww>
         <Ww>
           <count>7</count>
           <WinNumber>2</WinNumber>
-          <ItemText>left_arm_3</ItemText>
+          <ItemText>front_flag</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>2</WinNumber>
-          <ItemText>left_arm_4</ItemText>
+          <ItemText>right_arm.target[1]</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
           <WinNumber>2</WinNumber>
-          <ItemText>right_arm_3</ItemText>
+          <ItemText>left_arm.target[0]</ItemText>
         </Ww>
         <Ww>
           <count>10</count>
           <WinNumber>2</WinNumber>
-          <ItemText>right_arm_4</ItemText>
+          <ItemText>right_arm.target[0]</ItemText>
         </Ww>
         <Ww>
           <count>11</count>
           <WinNumber>2</WinNumber>
-          <ItemText>shangxipan</ItemText>
+          <ItemText>left_arm.target[1]</ItemText>
         </Ww>
         <Ww>
           <count>12</count>
           <WinNumber>2</WinNumber>
-          <ItemText>slide_pos</ItemText>
+          <ItemText>left_arm.target[3]</ItemText>
         </Ww>
         <Ww>
           <count>13</count>
           <WinNumber>2</WinNumber>
-          <ItemText>slide_pos</ItemText>
+          <ItemText>right_arm.target[0]</ItemText>
+        </Ww>
+        <Ww>
+          <count>14</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>right_arm.target[3]</ItemText>
+        </Ww>
+        <Ww>
+          <count>15</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>left_arm.target[2]</ItemText>
         </Ww>
       </WatchWindow2>
       <Tracepoint>

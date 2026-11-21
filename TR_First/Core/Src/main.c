@@ -96,7 +96,7 @@ int main(void)
 
   /* Configure the peripherals common clocks */
   PeriphCommonClock_Config();
-
+ 
   /* USER CODE BEGIN SysInit */
 
   /* USER CODE END SysInit */

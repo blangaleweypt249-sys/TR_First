@@ -44,6 +44,14 @@ typedef enum
     eKeyDown = eKeyOmni3,
     eKeyRight = eKeyOmni4,
     eKeyUp = eKeyOmni5,
+
+    //肩键：遥控器把肩键 ADC 分成四档，这里拆成 6 个键
+    eKeyShLPress = 27,  //左肩 按下
+    eKeyShLUp,          //左肩 上拨
+    eKeyShLDown,        //左肩 下拨
+    eKeyShRPress,       //右肩 按下
+    eKeyShRUp,          //右肩 上拨
+    eKeyShRDown,        //右肩 下拨
 }HandleKeyId;
 
 typedef struct
@@ -52,7 +60,7 @@ typedef struct
     uint8_t state;  //上次处理过的电平
 }HandleKey;
 
-extern HandleKey handle_key[27U];
+extern HandleKey handle_key[33U];
 
 uint8_t Handle_KeyRelease(HandleKeyId id);  //松开那一拍触发一次
 uint8_t Handle_KeyChange(HandleKeyId id);   //状态一变触发一次

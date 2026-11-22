@@ -102,7 +102,7 @@ void ClimbTask(void *argument)
       if (up_distance > 9.0f)
         up_distance = 0.0f;
       else
-        up_distance = 18.0f;
+        up_distance = 14.0f;
     }
 
     //PE6 前腿伸 + 后腿20

@@ -421,11 +421,6 @@
               <FilePath>../Core/Src/fdcan.c</FilePath>
             </File>
             <File>
-              <FileName>tim.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Core/Src/tim.c</FilePath>
-            </File>
-            <File>
               <FileName>spi.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/spi.c</FilePath>
@@ -480,6 +475,11 @@
                   </Cads>
                 </FileArmAds>
               </FileOption>
+            </File>
+            <File>
+              <FileName>tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/tim.c</FilePath>
             </File>
             <File>
               <FileName>usart.c</FileName>

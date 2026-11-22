@@ -122,6 +122,11 @@ osSemaphoreId_t ChassisReadyHandle;
 const osSemaphoreAttr_t ChassisReady_attributes = {
   .name = "ChassisReady"
 };
+/* Definitions for Reboot_motor */
+osSemaphoreId_t Reboot_motorHandle;
+const osSemaphoreAttr_t Reboot_motor_attributes = {
+  .name = "Reboot_motor"
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -202,6 +207,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of ChassisReady */
   ChassisReadyHandle = osSemaphoreNew(1, 0, &ChassisReady_attributes);
+
+  /* creation of Reboot_motor */
+  Reboot_motorHandle = osSemaphoreNew(1, 0, &Reboot_motor_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */

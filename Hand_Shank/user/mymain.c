@@ -19,6 +19,22 @@ static volatile uint8_t beep_alarm;
 static uint8_t beep_count;
 static uint8_t beep_phase;
 
+//肩键四档：0 空闲 1 按下 2 上拨 3 下拨
+//实测左肩 0/672/2049/3715，右肩 0/665/2041/3720，左右镜像
+static uint8_t Shoulder_Level(uint16_t raw, uint8_t is_left)
+{
+    if (raw < 300U) //空闲
+        return 0U;
+
+    if (raw < 1300U) //低档：左肩上拨、右肩下拨
+        return is_left ? 2U : 3U;
+
+    if (raw < 2900U) //中间：按下
+        return 1U;
+
+    return is_left ? 3U : 2U; //高档：左肩下拨、右肩上拨
+}
+
 void Beep_Request(uint8_t count)
 {
     beep_request = count;
@@ -235,7 +251,7 @@ static float Rock_Axis(uint16_t rock, uint16_t center, uint16_t min, uint16_t ma
 static void Rock_Shape(float x, float y, float *out_x, float *out_y)
 {
     const float dead = 0.02f; //死区半径，约 40 个 ADC 码，和原来一样大
-    const float expo = 0.3f;  //非线性程度：0 线性，1 全是三次项
+    const float expo = 0.5f;  //非线性程度：0 线性，1 全是三次项
     float mag = sqrtf(x * x + y * y);
     float k;
 
@@ -296,8 +312,8 @@ void ScanTask(void *argument)
                    -Rock_Axis(adc_f[1], 2069, 2, 4095),
                    &remoteData.x, &remoteData.y);
 
-        remoteData.shoulder[0] = adc_f[2] > 700 ? 1 : 0;
-        remoteData.shoulder[1] = adc_f[3] > 700 ? 1 : 0;
+        remoteData.shoulder[0] = Shoulder_Level(adc_f[2], 1U);
+        remoteData.shoulder[1] = Shoulder_Level(adc_f[3], 0U);
 
         if (osMessageQueuePut(ScanToTransHandle, &remoteData, 0U, 0U) != osOK)//队列满就丢旧值，只留最新状态
         {

@@ -38,20 +38,21 @@ typedef enum
     eUpVertical,        //竖直排列
 }Up_State;
 
-//分段动作：先动前一段，走到 90% 再放下一段
+//分段动作：等关节 1、2 走稳了再放末端
 typedef struct
 {
-    uint8_t stage;      //分段阶段
-    float joint1_start; //关节1起步位置
-    float joint2_start; //关节2起步位置
-    float joint3_start; //关节3起步位置
-    float joint4_start; //关节4起步位置
+    uint8_t stage;      //0 空闲 1 等稳定 2 末端已放
+    uint8_t still;      //连续稳定计数
+    float last1;        //上一拍 5010 位置
+    float last2;        //上一拍 RS00 位置
+    uint32_t tick;      //开始等稳定的时刻
 }Arm_Stage;
 
 extern Arm left_arm;
 extern Arm right_arm;
 extern Up_State up_state;
 extern volatile uint8_t arm_boot_cnt;    //RS 电机上电 announce 帧计数，6 帧到齐说明都启动好了
+extern osSemaphoreId_t Reboot_motorHandle;          
 
 void Up_Init(void);
 void Arm_Home(Arm *arm);                    //回零：4 个关节目标都置 0

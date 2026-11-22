@@ -466,6 +466,11 @@
               </FileOption>
             </File>
             <File>
+              <FileName>tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/tim.c</FilePath>
+            </File>
+            <File>
               <FileName>usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/usart.c</FilePath>
@@ -935,6 +940,16 @@
               <FileName>RS05.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\user\RS05.h</FilePath>
+            </File>
+            <File>
+              <FileName>MG5010E.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\MG5010E.c</FilePath>
+            </File>
+            <File>
+              <FileName>MG5010E.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\user\MG5010E.h</FilePath>
             </File>
           </Files>
         </Group>

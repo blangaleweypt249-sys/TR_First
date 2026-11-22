@@ -252,6 +252,11 @@
           <WinNumber>2</WinNumber>
           <ItemText>right_arm.target[2]</ItemText>
         </Ww>
+        <Ww>
+          <count>17</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>up_distance</ItemText>
+        </Ww>
       </WatchWindow2>
       <Tracepoint>
         <THDelay>0</THDelay>
@@ -398,8 +403,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>../Core/Src/tim.c</PathWithFileName>
-      <FilenameWithoutPath>tim.c</FilenameWithoutPath>
+      <PathWithFileName>../Core/Src/spi.c</PathWithFileName>
+      <FilenameWithoutPath>spi.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -410,8 +415,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>../Core/Src/spi.c</PathWithFileName>
-      <FilenameWithoutPath>spi.c</FilenameWithoutPath>
+      <PathWithFileName>../Core/Src/tim.c</PathWithFileName>
+      <FilenameWithoutPath>tim.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>

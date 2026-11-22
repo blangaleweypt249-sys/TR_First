@@ -12,7 +12,8 @@ enum
     eSpeedPosCommand = 0xA4,
     eSetOriginCommand = 0x19,
     eReadStateCommand = 0x9C,
-    eReadPositionCommand = 0x92
+    eReadPositionCommand = 0x92,
+    eRebootCommand = 0x07
 };
 
 void MG5010E_Init(MG5010E *motor, FDCAN_HandleTypeDef *hfdcan, uint8_t can_id, float ratio)
@@ -23,6 +24,7 @@ void MG5010E_Init(MG5010E *motor, FDCAN_HandleTypeDef *hfdcan, uint8_t can_id, f
     motor->pos = 0.0f;
     motor->target_pos = 0.0f;
     motor->speed_limit = 0.0f;
+    motor->last_tick = HAL_GetTick();
 }
 
 //速度模式 speed rpm  current A
@@ -114,6 +116,15 @@ void MG5010E_Stop(MG5010E *motor)
     MG5010E_Speed(motor, 0.0f, 0.0f);
 }
 
+//重启电机，等于给它重新上电，不回数据
+void MG5010E_Reboot(MG5010E *motor)
+{
+    uint8_t tx_data[8] = {0};
+
+    tx_data[0] = eRebootCommand;
+    CAN_Transmit(motor->hfdcan, 0, 0x140U | motor->can_id, tx_data, 8);
+}
+
 void MG5010E_GetPosition(MG5010E *motor, FDCAN_RxHeaderTypeDef *rx_header, uint8_t *data)
 {
     uint8_t u8[8];
@@ -131,6 +142,9 @@ void MG5010E_GetPosition(MG5010E *motor, FDCAN_RxHeaderTypeDef *rx_header, uint8
     {
         return;
     }
+
+    motor->last_tick = HAL_GetTick();//收到回执就刷新心跳，0xA4 的也算
+
     if (data[0] != eReadPositionCommand)
     {
         return;

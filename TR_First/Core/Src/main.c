@@ -23,9 +23,9 @@
 #include "dma.h"
 #include "fdcan.h"
 #include "spi.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
-#include "tim.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -96,7 +96,7 @@ int main(void)
 
   /* Configure the peripherals common clocks */
   PeriphCommonClock_Config();
- 
+
   /* USER CODE BEGIN SysInit */
 
   /* USER CODE END SysInit */

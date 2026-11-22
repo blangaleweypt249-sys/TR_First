@@ -10,7 +10,7 @@ float last_target_speed[4] = {0.0f};
 Speed world_speed;
 Speed body_speed;
 Helm_chassis helm_chassis;
-float speed_k = 0.003f; // 最大2.5m/s
+float speed_k = 0.0045f; // 最大4.5m/s
 float speed_w = 2.0f;
 
 float up_distance = 0;

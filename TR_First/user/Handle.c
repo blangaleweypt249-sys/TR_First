@@ -14,9 +14,9 @@ static uint8_t handle_switch_init;
 static uint32_t handle_last_tick;   //上一帧时间
 static uint8_t handle_sync_num;     //上电/重连后还要对齐几帧
 
-HandleKey handle_key[27U];
+HandleKey handle_key[33U];
 
-//链路超过 200ms 没有有效帧就算断了
+//链路超过 200ms 没有有效帧就算断了，这是遥控在线判断的唯一依据
 static uint8_t Handle_LinkOk(void)
 {
     return (HAL_GetTick() - handle_last_tick) < 200U;
@@ -67,7 +67,7 @@ void Key_Detect(void)
     {
         if (handle_data.num[0] == 0U)
             return;
-        for (uint8_t i = 0U; i < 27; i++)
+        for (uint8_t i = 0U; i < 33U; i++)
             handle_key[i].state = handle_key[i].key;
         handle_switch_init = 1U;
         return;
@@ -206,6 +206,14 @@ void Handle_Analysis(uint8_t *data)
                     handle_data.right_down_key[i - 20U] = pressed; //2个小按钮
                 else
                     handle_data.omni_key[i - 22U] = pressed;//全向键
+            }
+
+            //肩键四档拆成 6 个键：27~29 左按下/上拨/下拨，30~32 右按下/上拨/下拨
+            for (uint8_t i = 0; i < 2U; i++)
+            {
+                handle_key[27U + i * 3U + 0U].key = (handle_data.shoulder[i] == 1U);//按下
+                handle_key[27U + i * 3U + 1U].key = (handle_data.shoulder[i] == 2U);//上拨
+                handle_key[27U + i * 3U + 2U].key = (handle_data.shoulder[i] == 3U);//下拨
             }
 
             if (handle_data.num[0] >= 1000)

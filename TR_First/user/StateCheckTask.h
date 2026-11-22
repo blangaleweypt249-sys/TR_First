@@ -11,7 +11,6 @@
 
 typedef struct
 {
-    bool handle_state;
     bool imu_state;
     bool dt35_state[4];
     bool dji_3508_state[4];

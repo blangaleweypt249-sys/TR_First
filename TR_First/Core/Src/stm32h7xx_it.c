@@ -59,6 +59,7 @@
 extern FDCAN_HandleTypeDef hfdcan1;
 extern FDCAN_HandleTypeDef hfdcan2;
 extern FDCAN_HandleTypeDef hfdcan3;
+extern TIM_HandleTypeDef htim7;
 extern DMA_HandleTypeDef hdma_uart4_rx;
 extern DMA_HandleTypeDef hdma_uart4_tx;
 extern DMA_HandleTypeDef hdma_uart5_rx;
@@ -329,20 +330,6 @@ void TIM4_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles TIM7 global interrupt.
-  */
-void TIM7_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM7_IRQn 0 */
-
-  /* USER CODE END TIM7_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim7);
-  /* USER CODE BEGIN TIM7_IRQn 1 */
-
-  /* USER CODE END TIM7_IRQn 1 */
-}
-
-/**
   * @brief This function handles USART1 global interrupt.
   */
 void USART1_IRQHandler(void)
@@ -424,6 +411,20 @@ void UART5_IRQHandler(void)
   /* USER CODE BEGIN UART5_IRQn 1 */
 
   /* USER CODE END UART5_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM7 global interrupt.
+  */
+void TIM7_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM7_IRQn 0 */
+
+  /* USER CODE END TIM7_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim7);
+  /* USER CODE BEGIN TIM7_IRQn 1 */
+
+  /* USER CODE END TIM7_IRQn 1 */
 }
 
 /**

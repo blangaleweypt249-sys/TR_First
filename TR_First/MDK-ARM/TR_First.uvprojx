@@ -889,6 +889,11 @@
               <FilePath>..\user\bsp_can.h</FilePath>
             </File>
             <File>
+              <FileName>W5500.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\W5500.c</FilePath>
+            </File>
+            <File>
               <FileName>w25q128.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\user\w25q128.c</FilePath>

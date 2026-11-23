@@ -12,6 +12,7 @@
 typedef struct
 {
     bool imu_state;
+    bool w5500_offline; //true：未收到上位机有效探测帧
     bool dt35_state[4];
     bool dji_3508_state[4];
     bool dji_2006_state[4]; 

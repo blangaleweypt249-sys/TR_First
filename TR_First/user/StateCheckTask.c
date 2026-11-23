@@ -1,4 +1,5 @@
 #include "StateCheckTask.h"
+#include "W5500.h"
 
 Device_Offline_State_t Device_Offline_State;
 
@@ -31,6 +32,10 @@ void StateCheckTask(void *argument)
     for (;;)
     {
         RecoverCANBus();
+        //上位机探测周期 50 ms，允许连续 100 个检查周期（500 ms）没收到有效帧
+        if (w5500_num[0] != w5500_num[1])
+            w5500_num[2] = 0;
+        Device_Offline_State.w5500_offline = Check_State(w5500_num, 100);
 
         Device_Offline_State.imu_state = Check_State(imu_num, STATE_TIMEOUT_COUNT);
         Device_Offline_State.dt35_state[0] = Check_State(dt35_front.dt35_num, STATE_TIMEOUT_COUNT);

@@ -97,6 +97,13 @@ const osThreadAttr_t myLocationTask_attributes = {
   .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for myW5500Task */
+osThreadId_t myW5500TaskHandle;
+const osThreadAttr_t myW5500Task_attributes = {
+  .name = "myW5500Task",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityBelowNormal,
+};
 /* Definitions for handleQueue */
 osMessageQueueId_t handleQueueHandle;
 const osMessageQueueAttr_t handleQueue_attributes = {
@@ -140,6 +147,7 @@ void ClimbTask(void *argument);
 void PickTask(void *argument);
 void StateCheckTask(void *argument);
 void LocationTask(void *argument);
+void W5500_Task(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -254,6 +262,8 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of myLocationTask */
   myLocationTaskHandle = osThreadNew(LocationTask, NULL, &myLocationTask_attributes);
+
+  myW5500TaskHandle = osThreadNew(W5500_Task, NULL, &myW5500Task_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -389,6 +399,15 @@ __weak void LocationTask(void *argument)
     osDelay(1);
   }
   /* USER CODE END LocationTask */
+}
+
+__weak void W5500_Task(void *argument)
+{
+  (void)argument;
+  for (;;)
+  {
+    osDelay(5);
+  }
 }
 
 /* Private application code --------------------------------------------------*/

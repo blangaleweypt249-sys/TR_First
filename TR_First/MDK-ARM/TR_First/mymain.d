@@ -43,6 +43,6 @@ tr_first/mymain.o: ..\user\mymain.c ..\user\mymain.h ..\Core\Inc\main.h \
   ..\user\bsp_can.h ..\user\helm_chassis.h ..\user\pid.h ..\user\DJI.h \
   ..\user\vesc.h ..\user\Interpolation.h ..\user\WpLib.h ..\user\Leg.h \
   ..\Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS_V2\cmsis_os.h \
-  ..\Drivers\CMSIS\RTOS2\Include\cmsis_os2.h ..\user\Handle.h \
-  ..\user\StateCheckTask.h ..\user\imu_100A.h ..\user\dt35.h \
-  ..\user\STP_23L.h ..\user\w25q128.h
+  ..\Drivers\CMSIS\RTOS2\Include\cmsis_os2.h ..\bsp\bsp_uart.h \
+  ..\user\Handle.h ..\user\StateCheckTask.h ..\user\imu_100A.h \
+  ..\user\dt35.h ..\user\STP_23L.h ..\user\w25q128.h

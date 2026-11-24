@@ -53,7 +53,7 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(SPI6_NSS_GPIO_Port, SPI6_NSS_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOA, SPI6_NSS_Pin|W5500_CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, up_air_Pin|left_air_Pin|right_realair_Pin|left_realair_Pin, GPIO_PIN_RESET);
@@ -67,12 +67,12 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, right_jia_Pin|front_leg_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : SPI6_NSS_Pin */
-  GPIO_InitStruct.Pin = SPI6_NSS_Pin;
+  /*Configure GPIO pins : SPI6_NSS_Pin W5500_CS_Pin */
+  GPIO_InitStruct.Pin = SPI6_NSS_Pin|W5500_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(SPI6_NSS_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : up_air_Pin left_air_Pin right_realair_Pin left_realair_Pin */
   GPIO_InitStruct.Pin = up_air_Pin|left_air_Pin|right_realair_Pin|left_realair_Pin;

@@ -86,8 +86,6 @@ void RS05_Init(RS05 *Motor, bool zero_flag, FDCAN_HandleTypeDef *hcan, uint16_t 
 
     RS05_SetMode(Motor, mode);
     osDelay(20);
-    RS05_Enable(Motor);
-    osDelay(20);
 }
 
 void RS05_Enable(RS05 *rs05)

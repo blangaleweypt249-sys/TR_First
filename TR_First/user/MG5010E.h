@@ -24,7 +24,8 @@ void MG5010E_SpeedPos(MG5010E *motor, float pos, float speed_limit);
 void MG5010E_ReadPosition(MG5010E *motor);
 void MG5010E_SetOrigin(MG5010E *motor);
 void MG5010E_Stop(MG5010E *motor);
-void MG5010E_Reboot(MG5010E *motor);
+void MG5010E_ClearError(MG5010E *motor);
+void MG5010E_Enable(MG5010E *motor);
 void MG5010E_GetPosition(MG5010E *motor, FDCAN_RxHeaderTypeDef *rx_header, uint8_t *data);
 
 #endif

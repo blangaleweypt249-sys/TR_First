@@ -341,7 +341,7 @@
               <MiscControls></MiscControls>
               <Define>USE_PWR_LDO_SUPPLY,USE_HAL_DRIVER,STM32H723xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/RTOS2/Include;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../user</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/RTOS2/Include;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../user;../app;../bsp</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -799,34 +799,89 @@
           <GroupName>APP</GroupName>
           <Files>
             <File>
-              <FileName>mymain.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\user\mymain.c</FilePath>
-            </File>
-            <File>
               <FileName>mymain.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\user\mymain.h</FilePath>
             </File>
             <File>
-              <FileName>StateCheckTask.c</FileName>
+              <FileName>init_task.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\user\StateCheckTask.c</FilePath>
+              <FilePath>..\app\init_task.c</FilePath>
             </File>
             <File>
-              <FileName>StateCheckTask.h</FileName>
+              <FileName>init_task.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\user\StateCheckTask.h</FilePath>
+              <FilePath>..\app\init_task.h</FilePath>
             </File>
             <File>
-              <FileName>path.c</FileName>
+              <FileName>chassis_task.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\user\path.c</FilePath>
+              <FilePath>..\app\chassis_task.c</FilePath>
             </File>
             <File>
-              <FileName>path.h</FileName>
+              <FileName>chassis_task.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\user\path.h</FilePath>
+              <FilePath>..\app\chassis_task.h</FilePath>
+            </File>
+            <File>
+              <FileName>arm_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\arm_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>arm_task.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\app\arm_task.h</FilePath>
+            </File>
+            <File>
+              <FileName>climb_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\climb_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>climb_task.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\app\climb_task.h</FilePath>
+            </File>
+            <File>
+              <FileName>handle_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\handle_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>handle_task.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\app\handle_task.h</FilePath>
+            </File>
+            <File>
+              <FileName>status_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\status_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>status_task.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\app\status_task.h</FilePath>
+            </File>
+            <File>
+              <FileName>net_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\net_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>net_task.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\app\net_task.h</FilePath>
+            </File>
+            <File>
+              <FileName>location_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\location_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>location_task.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\app\location_task.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -879,6 +934,16 @@
           <GroupName>BSP</GroupName>
           <Files>
             <File>
+              <FileName>bsp_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\bsp\bsp_uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_uart.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\bsp\bsp_uart.h</FilePath>
+            </File>
+            <File>
               <FileName>bsp_can.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\user\bsp_can.c</FilePath>
@@ -887,6 +952,16 @@
               <FileName>bsp_can.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\user\bsp_can.h</FilePath>
+            </File>
+            <File>
+              <FileName>W5500.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\W5500.c</FilePath>
+            </File>
+            <File>
+              <FileName>W5500.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\user\W5500.h</FilePath>
             </File>
             <File>
               <FileName>w25q128.c</FileName>

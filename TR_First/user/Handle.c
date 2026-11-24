@@ -5,16 +5,16 @@
 static uint8_t handle_stream[64];
 static uint16_t handle_stream_len;
 uint8_t receive_handle[17];
-uint8_t handle_dma[68];             //UART9 收包缓冲，一次能装 4 帧，不然两帧挤一起就溢出
 
 HandleData handle_data;
 volatile uint8_t wifi_ok;
 bool handle_lock;
-static uint8_t handle_switch_init;
 static uint32_t handle_last_tick;   //上一帧时间
 static uint8_t handle_sync_num;     //上电/重连后还要对齐几帧
 
 HandleKey handle_key[33U];
+
+int16_t handle_value[4]; // 测试遥控数据
 
 //链路超过 200ms 没有有效帧就算断了，这是遥控在线判断的唯一依据
 static uint8_t Handle_LinkOk(void)
@@ -61,23 +61,6 @@ uint8_t Handle_KeyChange(HandleKeyId id)
     return 0U;
 }
 
-void Key_Detect(void)
-{
-    if (handle_switch_init == 0U)//第一帧只对齐按键状态，不触发
-    {
-        if (handle_data.num[0] == 0U)
-            return;
-        for (uint8_t i = 0U; i < 33U; i++)
-            handle_key[i].state = handle_key[i].key;
-        handle_switch_init = 1U;
-        return;
-    }
-
-    if (Handle_KeyChange(eKeyUp1))//锁车开关
-        handle_lock = !handle_lock;
-}
-
-//流式缓存
 void Handle_RxFeed(const uint8_t *data, uint16_t size)
 {
     while (size--)
@@ -106,57 +89,6 @@ void Handle_RxFeed(const uint8_t *data, uint16_t size)
                 memmove(handle_stream,&handle_stream[1],--handle_stream_len);
             }
         }
-    }
-}
-
-int16_t handle_value[4]; // 测试遥控数据
-
-static void Wifi_Init(void)
-{
-    //默认使用2.4ghz 6信道
-    const char ap_cmd[] = "AT+WLSTARTAP=ssid,UPRE_WIFI,ch,6,sec,wpa2,pw,12345678\r\n";
-    const char server_cmd[] = "AT+SKTSERVER=0,1,,6060,1\r\n";
-    for (uint8_t retry = 0; retry < 3; retry++)
-    {
-        wifi_ok = 0;
-        HAL_UART_Transmit_DMA(&huart9, (uint8_t *)ap_cmd, sizeof(ap_cmd) - 1U);
-        for (uint8_t wait = 0; wait < 100; wait++)
-        {
-            if (wifi_ok)
-                break;
-            osDelay(10);
-        }
-        if (wifi_ok)
-            break;
-    }
-
-    for (uint8_t retry = 0; retry < 3; retry++)
-    {
-        wifi_ok = 0;
-        HAL_UART_Transmit_DMA(&huart9, (uint8_t *)server_cmd, sizeof(server_cmd) - 1U);
-        for (uint8_t wait = 0; wait < 100; wait++)
-        {
-            if (wifi_ok)
-                break;
-            osDelay(10);
-        }
-        if (wifi_ok)
-            break;
-    }
-}
-
-void HandleTask(void *argument)
-{
-    Wifi_Init();
-
-    for (;;)
-    {
-        if (osMessageQueueGet(handleQueueHandle, receive_handle, NULL, 0U) == osOK)
-        {
-            Handle_Analysis(receive_handle);
-        }
-
-        osDelay(1);
     }
 }
 

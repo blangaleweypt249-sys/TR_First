@@ -89,6 +89,8 @@ void Error_Handler(void);
 #define right_jia_GPIO_Port GPIOB
 #define front_leg_Pin GPIO_PIN_7
 #define front_leg_GPIO_Port GPIOB
+#define W5500_CS_Pin GPIO_PIN_15
+#define W5500_CS_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
 

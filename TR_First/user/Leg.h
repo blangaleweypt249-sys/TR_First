@@ -5,6 +5,8 @@
 #include "DJI.h"
 #include "cmsis_os.h"
 
+#define ms_to_rpm  477.46         //小轮直径40mm
+
 //前腿PB7
 
 void Leg_Init(void);

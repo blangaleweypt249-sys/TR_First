@@ -13,6 +13,8 @@
                 "d:\\demo_wp\\TR_First\\TR_First\\Drivers\\CMSIS\\Device\\ST\\STM32H7xx\\Include",
                 "d:\\demo_wp\\TR_First\\TR_First\\Drivers\\CMSIS\\Include",
                 "d:\\demo_wp\\TR_First\\TR_First\\user",
+                "d:\\demo_wp\\TR_First\\TR_First\\app",
+                "d:\\demo_wp\\TR_First\\TR_First\\bsp",
                 "D:\\keil5\\core\\Backup.004\\ARM\\ARMCLANG\\include",
                 "D:\\keil5\\core\\Backup.004\\ARM\\ARMCLANG\\include\\arm_linux",
                 "D:\\keil5\\core\\Backup.004\\ARM\\ARMCLANG\\include\\arm_linux_compat",

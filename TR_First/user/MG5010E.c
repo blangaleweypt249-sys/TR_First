@@ -13,7 +13,8 @@ enum
     eSetOriginCommand = 0x19,
     eReadStateCommand = 0x9C,
     eReadPositionCommand = 0x92,
-    eRebootCommand = 0x07
+    eClearErrorCommand = 0x9B,
+    eEnableCommand = 0x88
 };
 
 void MG5010E_Init(MG5010E *motor, FDCAN_HandleTypeDef *hfdcan, uint8_t can_id, float ratio)
@@ -116,12 +117,21 @@ void MG5010E_Stop(MG5010E *motor)
     MG5010E_Speed(motor, 0.0f, 0.0f);
 }
 
-//重启电机，等于给它重新上电，不回数据
-void MG5010E_Reboot(MG5010E *motor)
+//清电机错误标志，手册里的 0x9B
+void MG5010E_ClearError(MG5010E *motor)
 {
     uint8_t tx_data[8] = {0};
 
-    tx_data[0] = eRebootCommand;
+    tx_data[0] = eClearErrorCommand;
+    CAN_Transmit(motor->hfdcan, 0, 0x140U | motor->can_id, tx_data, 8);
+}
+
+// 将电机切换到运行状态。清错命令不会改变 0x80/0x88 的运行状态。
+void MG5010E_Enable(MG5010E *motor)
+{
+    uint8_t tx_data[8] = {0};
+
+    tx_data[0] = eEnableCommand;
     CAN_Transmit(motor->hfdcan, 0, 0x140U | motor->can_id, tx_data, 8);
 }
 

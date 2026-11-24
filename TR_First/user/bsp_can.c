@@ -67,17 +67,10 @@ HAL_StatusTypeDef CAN_Transmit(FDCAN_HandleTypeDef *hfdcan, uint8_t type, uint32
         send_data[i] = data[i];
     }
 
-    //FIFO 满了等一会再发，别把指令帧丢了（中断里不等，丢了下一个周期再发）
-    if (__get_IPSR() == 0U)
+    //FIFO 满直接丢，下一拍重发；周期任务里不能等
+    if (HAL_FDCAN_GetTxFifoFreeLevel(hfdcan) == 0U)
     {
-        uint32_t wait = 0;
-        while (HAL_FDCAN_GetTxFifoFreeLevel(hfdcan) == 0U)
-        {
-            if (++wait > 20000U)//约 1ms，总线关了也不会卡死
-            {
-                return HAL_BUSY;
-            }
-        }
+        return HAL_BUSY;
     }
 
     status = HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, &tx_header, send_data);

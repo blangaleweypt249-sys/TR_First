@@ -7,6 +7,7 @@ VESC vesc_motor[4];
 DJI_Motor helm_motor[4];
 PID pid_CarAnale;
 Angle car_angle;
+Helm_chassis helm_chassis;
 
 calibration helm_calibration_data = {0}; // 光电门
 volatile uint8_t ready_target_initialized = 0U;
@@ -132,6 +133,8 @@ void helm_calculate(Speed *body_speed, Helm_chassis *helm_chassises)
 
 void Helm_Calibration(void)
 {
+    uint32_t tick = HAL_GetTick();
+
     while (!helm_calibration_data.all_helm_success_flag)
     {
         for (uint8_t i = 0; i < 4; i++)
@@ -168,6 +171,9 @@ void Helm_Calibration(void)
             helm_calibration_data.helm_calibration_flag[2] &&
             helm_calibration_data.helm_calibration_flag[3];
 
+        if (HAL_GetTick() - tick > 5000U) //5s 还找不齐就不等了，先让主流程跑起来
+            break;
+
         osDelay(1);
     }
 
@@ -181,7 +187,6 @@ void Helm_Calibration(void)
     }
 
     ready_target_initialized = 1U;
-    osSemaphoreRelease(ChassisReadyHandle);
 }
 
 //加上速度规划实测效果很一般不如不加，以后再试试
@@ -237,18 +242,6 @@ void World_to_body(Speed *world_speed, Speed *body_speed, float imu_angle)
     body_speed->vx = world_speed->vx * cos_angle + world_speed->vy * sin_angle;
     body_speed->vy = -world_speed->vx * sin_angle + world_speed->vy * cos_angle;
     body_speed->vw = world_speed->vw;
-}
-
-//肩键：按一次车身目标角叠 90°，左肩 +，右肩 -；只认"按下"那一档
-void car_angle_key(void)
-{
-    static uint8_t shoulder_last;
-
-    if (handle_data.shoulder[0] == 1U && (shoulder_last & 0x01U) == 0U)
-        car_angle.target_angle = wrap_pi(car_angle.target_angle + PI / 2.0f);
-    if (handle_data.shoulder[1] == 1U && (shoulder_last & 0x02U) == 0U)
-        car_angle.target_angle = wrap_pi(car_angle.target_angle - PI / 2.0f);
-    shoulder_last = (uint8_t)((handle_data.shoulder[0] == 1U) | ((handle_data.shoulder[1] == 1U) << 1));
 }
 
 void car_angle_maintain(Speed *world_speed, Angle *angle)

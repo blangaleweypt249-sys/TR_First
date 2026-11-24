@@ -80,11 +80,9 @@ typedef struct
 
 void Handle_Analysis(uint8_t *data);
 void Handle_RxFeed(const uint8_t *data, uint16_t size);
-void Key_Detect(void);
 //int16_t Rock_trans(uint16_t rock);
 
 extern uint8_t receive_handle[17];
-extern uint8_t handle_dma[68];      //UART9 收包缓冲，装得下 4 帧
 extern osMessageQueueId_t handleQueueHandle;
 extern HandleData handle_data;
 extern volatile uint8_t wifi_ok;

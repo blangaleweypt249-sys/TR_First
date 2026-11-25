@@ -52,7 +52,7 @@ typedef struct
 extern Arm left_arm;
 extern Arm right_arm;
 extern Up_State up_state;
-extern volatile uint8_t arm_boot_cnt;    //RS 电机上电 announce 帧计数，6 帧到齐说明都启动好了
+extern volatile uint8_t Motor_cnt;       //RS 电机上电帧计数，6 帧到齐说明都启动好了
 extern uint8_t arm_set_home;             //1 时只标零，不发运动指令
 extern volatile uint8_t M5010_pos_flag;  //200ms 读一次大臂位置
 extern float slide_pos;                  //右臂底座滑台目标

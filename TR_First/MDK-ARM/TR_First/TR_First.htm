@@ -3,7 +3,7 @@
 <title>Static Call Graph - [TR_First\TR_First.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image TR_First\TR_First.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6180002: Last Updated: Tue Nov 24 16:03:59 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6180002: Last Updated: Tue Nov 24 21:56:16 2026
 <BR><P>
 <H3>Maximum Stack Usage =        648 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -2330,7 +2330,7 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[9a]"></a>InitTask</STRONG> (Thumb, 58 bytes, Stack size 16 bytes, init_task.o(.text.InitTask))
-<BR><BR>[Stack]<UL><LI>Max Depth = 344 + Unknown Stack Size
+<BR><BR>[Stack]<UL><LI>Max Depth = 336 + Unknown Stack Size
 <LI>Call Chain = InitTask &rArr; Up_Init &rArr; RS05_Init &rArr; RS05_SetActiveReporting &rArr; RS05_WriteParameter &rArr; CAN_Transmit &rArr; HAL_FDCAN_AddMessageToTxFifoQ &rArr; FDCAN_CopyMessageToRAM
 </UL>
 <BR>[Calls]<UL><LI><a href="#[145]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_Base_Start_IT
@@ -3046,8 +3046,8 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32h723xx.o(RESET)
 </UL>
-<P><STRONG><a name="[189]"></a>Up_Init</STRONG> (Thumb, 764 bytes, Stack size 96 bytes, up_control.o(.text.Up_Init))
-<BR><BR>[Stack]<UL><LI>Max Depth = 328 + Unknown Stack Size
+<P><STRONG><a name="[189]"></a>Up_Init</STRONG> (Thumb, 728 bytes, Stack size 88 bytes, up_control.o(.text.Up_Init))
+<BR><BR>[Stack]<UL><LI>Max Depth = 320 + Unknown Stack Size
 <LI>Call Chain = Up_Init &rArr; RS05_Init &rArr; RS05_SetActiveReporting &rArr; RS05_WriteParameter &rArr; CAN_Transmit &rArr; HAL_FDCAN_AddMessageToTxFifoQ &rArr; FDCAN_CopyMessageToRAM
 </UL>
 <BR>[Calls]<UL><LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay

@@ -46,7 +46,6 @@ void RS00_Init(RS00 *Motor, bool zero_flag, FDCAN_HandleTypeDef *hcan, uint16_t 
 
     RS00_SetMode(Motor, mode);
     osDelay(20);
-    // 使能放到 Up_Init，等 6 台都回过数据再发
 }
 
 void RS00_Enable(RS00 *rs00)

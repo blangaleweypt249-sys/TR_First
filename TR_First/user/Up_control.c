@@ -3,7 +3,7 @@
 
 // 标零标志位(1时停止运控手动摆好)
 uint8_t arm_set_home;
-volatile uint8_t arm_boot_cnt;
+volatile uint8_t Motor_cnt;      //RS 电机上电发一帧，6 帧到齐说明 6 台都起来了
 volatile uint8_t M5010_pos_flag; //200ms 读一次大臂位置
 // 调试滑台位置用
 float slide_pos;
@@ -45,7 +45,7 @@ const float ball_done_pos[4] =
 const float sky_block_pos[8] =
 {
     -163.0f, -1.0f, 0.05f, 1.18f,
-    151.0f, 1.13f, -0.009f, 1.5f,
+    151.0f, 1.13f, -0.009f, 1.6f,
 };
 
 // 存天空块(右臂动)
@@ -112,7 +112,7 @@ void Arm_Send(Arm *arm)
     uint8_t mask = end_interp[arm->id];
     uint32_t t_ms = end_interp_ms[arm->id];
 
-    MG5010E_SpeedPos(&arm->joint1, arm->target[0], 20.0f);
+    MG5010E_SpeedPos(&arm->joint1, arm->target[0], 17.0f);
     RS00_Mit(&arm->joint2, 0, arm->target[1], 0, 27, 4, 0, 0);
 
     // 竖直排列：按开关决定末端 3、4 关节走不走插值，别的场合直接下发
@@ -378,21 +378,15 @@ void Up_Init(void)
 
     // 关节2 大臂第二个电机，左右交错着来
     RS00_Init(&left_arm.joint2, arm_set_home, &hfdcan3, 23, mit);
-    osDelay(1);
     RS00_Init(&right_arm.joint2, arm_set_home, &hfdcan3, 40, mit);
-    osDelay(1);
 
     // 关节3 小臂 / 关节4 腕
     RS05_Init(&left_arm.joint3, arm_set_home, &hfdcan3, 14, mit);
-    osDelay(1);
     RS05_Init(&right_arm.joint3, arm_set_home, &hfdcan3, 22, mit);
-    osDelay(1);
     RS05_Init(&left_arm.joint4, arm_set_home, &hfdcan3, 25, mit);
-    osDelay(1);
     RS05_Init(&right_arm.joint4, arm_set_home, &hfdcan3, 24, mit);
-    osDelay(1);
 
-    // 先固定等 500ms 再使能，last_tick 判据先不用
+    // 先固定等 500ms 再使能
     osDelay(500);
 
     // 0x9B 只清错误，不会把处于关闭状态的电机切回运行状态。

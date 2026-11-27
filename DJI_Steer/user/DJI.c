@@ -30,8 +30,8 @@ void DJI_Init(DJI_Motor *motor, CAN_HandleTypeDef *hcan, uint8_t board_id, uint8
 #if DJI_MODEL == DJI_MODEL_3508
     motor->speed_max = 480.0f;
     motor->current_max = 16384.0f;
-    pid_init(&motor->speed_pid, 0.0f, 12.0f, 0.0f, 8.0f, 16384.0f, 800.0f, 0.2f);
-    pid_init(&motor->position_pid, 0.0f, 6.0f, 0.0f, 50.0f, 160.0f, 20.0f, 1.0f);
+    pid_init(&motor->speed_pid, 0.0f, 9.0f, 0.0f, 14.0f, 16384.0f, 800.0f, 0.2f);
+    pid_init(&motor->position_pid, 0.0f, 7.0f, 0.0f, 50.0f, 160.0f, 20.0f, 0.05f);
 #else
     motor->speed_max = 500.0f;
     motor->current_max = 10000.0f;

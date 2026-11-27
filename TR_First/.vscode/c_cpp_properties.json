@@ -6,8 +6,6 @@
             "intelliSenseMode": "windows-clang-arm",
             "cStandard": "c99",
             "includePath": [
-                "${workspaceFolder}/app",
-                "${workspaceFolder}/bsp",
                 "${workspaceFolder}/Core/Inc",
                 "${workspaceFolder}/Drivers/STM32H7xx_HAL_Driver/Inc",
                 "${workspaceFolder}/Drivers/STM32H7xx_HAL_Driver/Inc/Legacy",

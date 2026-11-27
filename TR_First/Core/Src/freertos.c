@@ -247,6 +247,7 @@ void MX_FREERTOS_Init(void) {
   /* creation of myLocationTask */
   myLocationTaskHandle = osThreadNew(LocationTask, NULL, &myLocationTask_attributes);
 
+  /* creation of myNetTask */
   myNetTaskHandle = osThreadNew(NetTask, NULL, &myNetTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -257,6 +258,24 @@ void MX_FREERTOS_Init(void) {
   /* add events, ... */
   /* USER CODE END RTOS_EVENTS */
 
+}
+
+/* USER CODE BEGIN Header_InitTask */
+/**
+  * @brief  Function implementing the myInitTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_InitTask */
+__weak void InitTask(void *argument)
+{
+  /* USER CODE BEGIN InitTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END InitTask */
 }
 
 /* USER CODE BEGIN Header_ChassisTask */
@@ -367,13 +386,22 @@ __weak void LocationTask(void *argument)
   /* USER CODE END LocationTask */
 }
 
+/* USER CODE BEGIN Header_NetTask */
+/**
+* @brief Function implementing the myNetTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_NetTask */
 __weak void NetTask(void *argument)
 {
-  (void)argument;
-  for (;;)
+  /* USER CODE BEGIN NetTask */
+  /* Infinite loop */
+  for(;;)
   {
-    osDelay(5);
+    osDelay(1);
   }
+  /* USER CODE END NetTask */
 }
 
 /* Private application code --------------------------------------------------*/

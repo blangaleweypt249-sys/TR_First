@@ -112,13 +112,12 @@ int main(void)
   MX_SPI6_Init();
   MX_SPI1_Init();
   MX_UART4_Init();
-  MX_UART8_Init();
-  MX_USART3_UART_Init();
   MX_USART1_UART_Init();
   MX_UART9_Init();
   MX_UART5_Init();
   MX_USART6_UART_Init();
   MX_TIM7_Init();
+  MX_UART8_Init();
   /* USER CODE BEGIN 2 */
   /* USER CODE END 2 */
 

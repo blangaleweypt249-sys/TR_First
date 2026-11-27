@@ -13,8 +13,8 @@ void Bsp_Uart_Init(void)
     HAL_UARTEx_ReceiveToIdle_DMA(&huart9, handle_dma, sizeof(handle_dma));
     __HAL_DMA_DISABLE_IT(huart9.hdmarx, DMA_IT_HT);
 
-    HAL_UARTEx_ReceiveToIdle_DMA(&huart4, receive_dt35, sizeof(receive_dt35));
-    __HAL_DMA_DISABLE_IT(huart4.hdmarx, DMA_IT_HT);
+    HAL_UARTEx_ReceiveToIdle_DMA(&huart8, receive_dt35, sizeof(receive_dt35));
+    __HAL_DMA_DISABLE_IT(huart8.hdmarx, DMA_IT_HT);
 
     HAL_UARTEx_ReceiveToIdle_DMA(&huart7, receive_imu, sizeof(receive_imu));
     __HAL_DMA_DISABLE_IT(huart7.hdmarx, DMA_IT_HT);
@@ -29,14 +29,15 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
         __HAL_DMA_DISABLE_IT(huart9.hdmarx, DMA_IT_HT);
     }
 
-    if (huart->Instance == UART4)
+    if (huart->Instance == UART8)
     {
         if (Size == sizeof(receive_dt35))
         {
             osMessageQueuePut(dt35QueueHandle, receive_dt35, 0U, 0U);
         }
-        HAL_UARTEx_ReceiveToIdle_DMA(&huart4, receive_dt35, sizeof(receive_dt35));
-        __HAL_DMA_DISABLE_IT(huart4.hdmarx, DMA_IT_HT);
+        __HAL_UART_CLEAR_OREFLAG(&huart8);
+        HAL_UARTEx_ReceiveToIdle_DMA(&huart8, receive_dt35, sizeof(receive_dt35));
+        __HAL_DMA_DISABLE_IT(huart8.hdmarx, DMA_IT_HT);
     }
 
     if (huart->Instance == UART7)
@@ -59,14 +60,16 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
         __HAL_DMA_DISABLE_IT(huart9.hdmarx, DMA_IT_HT);
     }
 
-    if (huart->Instance == UART4)
+    if (huart->Instance == UART8)
     {
-        HAL_UARTEx_ReceiveToIdle_DMA(&huart4, receive_dt35, sizeof(receive_dt35));
-        __HAL_DMA_DISABLE_IT(huart4.hdmarx, DMA_IT_HT);
+        __HAL_UART_CLEAR_OREFLAG(&huart8);//ORE 不清掉，挂上去立刻又溢出，一直复位循环
+        HAL_UARTEx_ReceiveToIdle_DMA(&huart8, receive_dt35, sizeof(receive_dt35));
+        __HAL_DMA_DISABLE_IT(huart8.hdmarx, DMA_IT_HT);
     }
 
     if (huart->Instance == UART7)
     {
+        __HAL_UART_CLEAR_OREFLAG(&huart7);
         HAL_UARTEx_ReceiveToIdle_DMA(&huart7, receive_imu, sizeof(receive_imu));
         __HAL_DMA_DISABLE_IT(huart7.hdmarx, DMA_IT_HT);
     }

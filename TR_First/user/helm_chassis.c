@@ -224,17 +224,17 @@ float speed_planning(float target, float *last_target, float accel_step, float d
 void World_to_body(Speed *world_speed, Speed *body_speed, float imu_angle)
 {
     
-    if(world_speed->vx > 0.005 && world_speed->vx < 0.03){
-		world_speed->vx = 0.03;
+    if(world_speed->vx > 0.005 && world_speed->vx < 0.15){
+		world_speed->vx = 0.15;
 	}
-	else if(world_speed->vx < -0.005 && world_speed->vx > -0.03){
-		world_speed->vx = -0.03;
+	else if(world_speed->vx < -0.005 && world_speed->vx > -0.15){
+		world_speed->vx = -0.15;
 	}
-	if(world_speed->vy > 0.005 && world_speed->vy < 0.03){
-		world_speed->vy = 0.03;
+	if(world_speed->vy > 0.005 && world_speed->vy < 0.15){
+		world_speed->vy = 0.15;
 	}
-	if(world_speed->vy < -0.005 && world_speed->vy > -0.03){
-		world_speed->vy = -0.03;
+	if(world_speed->vy < -0.005 && world_speed->vy > -0.15){
+		world_speed->vy = -0.15;
 	}
     float cos_angle = cosf(imu_angle);
     float sin_angle = sinf(imu_angle);

@@ -204,7 +204,7 @@ void VESC_Analysisdata(VESC *vesc, FDCAN_RxHeaderTypeDef *rx_header, uint8_t *da
     {
         switch ((rx_header->Identifier >> 8) & 0xFF)
         {
-        case 9: // CAN_PACKET_STATUS
+        case 9: // CAN_PACKET_STATUS_1
             vesc->feedback.erpm = (int32_t)(((uint32_t)data[0] << 24) |
                                             ((uint32_t)data[1] << 16) |
                                             ((uint32_t)data[2] << 8) |

@@ -134,15 +134,18 @@ bool Check_State(int *num, int timeout)
     return false;
 }
 
+//开机采样 1.5 秒取中位数当零偏，采完就一直出数，不再判失败
 bool Imu_calibration(void)
 {
     static bool started;
     static bool finished;
     static uint32_t start_tick;
-    static uint32_t sample_count;
-    static float speed_sum;
-    static float speed_min;
-    static float speed_max;
+    static uint32_t frame_count;
+    static uint16_t sample_count;
+    static float samples[150];//1.5 秒，每 10ms 一个
+    uint16_t i, j;
+    float key;
+
     if (finished)
     {
         return true;
@@ -152,30 +155,39 @@ bool Imu_calibration(void)
     {
         started = true;
         start_tick = osKernelGetTickCount();
-        speed_sum = 0.0f;
+        frame_count = 0U;
         sample_count = 0U;
-        speed_min = 100.0f;
-        speed_max = -100.0f;
     }
 
-    speed_sum += imu_100A.gyro_speed;
-    sample_count++;
-    if (imu_100A.gyro_speed < speed_min)
-        speed_min = imu_100A.gyro_speed;
-    if (imu_100A.gyro_speed > speed_max)
-        speed_max = imu_100A.gyro_speed;
-    if ((osKernelGetTickCount() - start_tick) < 3000U)
+    //每 20 帧（10ms）存一个样本，采样期间动一下不影响中位数
+    if (((frame_count++) % 20U) == 0U && sample_count < 150U)
+    {
+        samples[sample_count++] = imu_100A.gyro_speed;
+    }
+
+    if ((osKernelGetTickCount() - start_tick) < 1500U)//采 1.5 秒
     {
         return false;
     }
 
-    if ((speed_max - speed_min) > 0.5f) //标定期间动了，重来
+    //插入排序取中位数，微动那一两下落在两端，直接忽略
+    for (i = 1U; i < sample_count; i++)
     {
-        started = false;
-        return false;
+        key = samples[i];
+        j = i;
+        while (j > 0U && samples[j - 1U] > key)
+        {
+            samples[j] = samples[j - 1U];
+            j--;
+        }
+        samples[j] = key;
     }
 
-    imu_100A.basic_speed = speed_sum / (float)sample_count;
+    if (sample_count > 0U)
+    {
+        imu_100A.basic_speed = samples[sample_count / 2U];
+    }
+
     finished = true;
     Imu_ClearYaw();
     return true;

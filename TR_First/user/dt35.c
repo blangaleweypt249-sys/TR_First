@@ -35,10 +35,10 @@ void DT35_Analysis(uint8_t *data)
             {
                 distance.u8[i - 1] = data[i];
             }
-            dt35_front.actual_dt35_distance = distance.flo[3];
-            dt35_back.actual_dt35_distance = distance.flo[0];
+            dt35_front.actual_dt35_distance = distance.flo[0];
             dt35_left.actual_dt35_distance = distance.flo[1];
-            dt35_right.actual_dt35_distance = distance.flo[2];
+            dt35_back.actual_dt35_distance = distance.flo[2];   //还没装，固定 0
+            dt35_right.actual_dt35_distance = distance.flo[3];  //还没装，固定 0
 
             // 检查外设连接状态
             for (uint8_t i = 0; i < 4; i++)

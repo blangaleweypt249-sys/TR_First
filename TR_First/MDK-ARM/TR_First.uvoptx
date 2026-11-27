@@ -165,6 +165,26 @@
           <WinNumber>1</WinNumber>
           <ItemText>right_arm</ItemText>
         </Ww>
+        <Ww>
+          <count>2</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>dt35_back</ItemText>
+        </Ww>
+        <Ww>
+          <count>3</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>dt35_left</ItemText>
+        </Ww>
+        <Ww>
+          <count>4</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>dt35_right</ItemText>
+        </Ww>
+        <Ww>
+          <count>5</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>Imu_angle</ItemText>
+        </Ww>
       </WatchWindow1>
       <WatchWindow2>
         <Ww>
@@ -195,67 +215,62 @@
         <Ww>
           <count>5</count>
           <WinNumber>2</WinNumber>
-          <ItemText>distance</ItemText>
+          <ItemText>up_distance</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>2</WinNumber>
-          <ItemText>up_distance</ItemText>
+          <ItemText>right_arm.target[1]</ItemText>
         </Ww>
         <Ww>
           <count>7</count>
           <WinNumber>2</WinNumber>
-          <ItemText>front_flag</ItemText>
+          <ItemText>left_arm.target[0]</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>2</WinNumber>
-          <ItemText>right_arm.target[1]</ItemText>
+          <ItemText>right_arm.target[0]</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
           <WinNumber>2</WinNumber>
-          <ItemText>left_arm.target[0]</ItemText>
+          <ItemText>left_arm.target[1]</ItemText>
         </Ww>
         <Ww>
           <count>10</count>
           <WinNumber>2</WinNumber>
-          <ItemText>right_arm.target[0]</ItemText>
+          <ItemText>left_arm.target[3]</ItemText>
         </Ww>
         <Ww>
           <count>11</count>
           <WinNumber>2</WinNumber>
-          <ItemText>left_arm.target[1]</ItemText>
+          <ItemText>right_arm.target[0]</ItemText>
         </Ww>
         <Ww>
           <count>12</count>
           <WinNumber>2</WinNumber>
-          <ItemText>left_arm.target[3]</ItemText>
+          <ItemText>right_arm.target[3]</ItemText>
         </Ww>
         <Ww>
           <count>13</count>
           <WinNumber>2</WinNumber>
-          <ItemText>right_arm.target[0]</ItemText>
+          <ItemText>left_arm.target[2]</ItemText>
         </Ww>
         <Ww>
           <count>14</count>
           <WinNumber>2</WinNumber>
-          <ItemText>right_arm.target[3]</ItemText>
+          <ItemText>right_arm.target[2]</ItemText>
         </Ww>
         <Ww>
           <count>15</count>
           <WinNumber>2</WinNumber>
-          <ItemText>left_arm.target[2]</ItemText>
+          <ItemText>up_distance</ItemText>
         </Ww>
         <Ww>
           <count>16</count>
           <WinNumber>2</WinNumber>
-          <ItemText>right_arm.target[2]</ItemText>
-        </Ww>
-        <Ww>
-          <count>17</count>
-          <WinNumber>2</WinNumber>
-          <ItemText>up_distance</ItemText>
+          <ItemText>huart4</ItemText>
         </Ww>
       </WatchWindow2>
       <Tracepoint>
@@ -332,7 +347,7 @@
 
   <Group>
     <GroupName>Application/User/Core</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -939,7 +954,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\init_task.c</PathWithFileName>
+      <PathWithFileName>..\user\init_task.c</PathWithFileName>
       <FilenameWithoutPath>init_task.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -951,7 +966,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\init_task.h</PathWithFileName>
+      <PathWithFileName>..\user\init_task.h</PathWithFileName>
       <FilenameWithoutPath>init_task.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -963,7 +978,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\chassis_task.c</PathWithFileName>
+      <PathWithFileName>..\user\chassis_task.c</PathWithFileName>
       <FilenameWithoutPath>chassis_task.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -975,7 +990,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\chassis_task.h</PathWithFileName>
+      <PathWithFileName>..\user\chassis_task.h</PathWithFileName>
       <FilenameWithoutPath>chassis_task.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -987,7 +1002,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\arm_task.c</PathWithFileName>
+      <PathWithFileName>..\user\arm_task.c</PathWithFileName>
       <FilenameWithoutPath>arm_task.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -999,7 +1014,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\arm_task.h</PathWithFileName>
+      <PathWithFileName>..\user\arm_task.h</PathWithFileName>
       <FilenameWithoutPath>arm_task.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1011,7 +1026,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\climb_task.c</PathWithFileName>
+      <PathWithFileName>..\user\climb_task.c</PathWithFileName>
       <FilenameWithoutPath>climb_task.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1023,7 +1038,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\climb_task.h</PathWithFileName>
+      <PathWithFileName>..\user\climb_task.h</PathWithFileName>
       <FilenameWithoutPath>climb_task.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1035,7 +1050,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\handle_task.c</PathWithFileName>
+      <PathWithFileName>..\user\handle_task.c</PathWithFileName>
       <FilenameWithoutPath>handle_task.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1047,7 +1062,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\handle_task.h</PathWithFileName>
+      <PathWithFileName>..\user\handle_task.h</PathWithFileName>
       <FilenameWithoutPath>handle_task.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1059,7 +1074,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\status_task.c</PathWithFileName>
+      <PathWithFileName>..\user\status_task.c</PathWithFileName>
       <FilenameWithoutPath>status_task.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1071,7 +1086,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\status_task.h</PathWithFileName>
+      <PathWithFileName>..\user\status_task.h</PathWithFileName>
       <FilenameWithoutPath>status_task.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1083,7 +1098,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\net_task.c</PathWithFileName>
+      <PathWithFileName>..\user\net_task.c</PathWithFileName>
       <FilenameWithoutPath>net_task.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1095,7 +1110,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\net_task.h</PathWithFileName>
+      <PathWithFileName>..\user\net_task.h</PathWithFileName>
       <FilenameWithoutPath>net_task.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1107,7 +1122,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\location_task.c</PathWithFileName>
+      <PathWithFileName>..\user\location_task.c</PathWithFileName>
       <FilenameWithoutPath>location_task.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1119,7 +1134,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\app\location_task.h</PathWithFileName>
+      <PathWithFileName>..\user\location_task.h</PathWithFileName>
       <FilenameWithoutPath>location_task.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1243,7 +1258,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\bsp\bsp_uart.c</PathWithFileName>
+      <PathWithFileName>..\user\bsp_uart.c</PathWithFileName>
       <FilenameWithoutPath>bsp_uart.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -1255,7 +1270,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\bsp\bsp_uart.h</PathWithFileName>
+      <PathWithFileName>..\user\bsp_uart.h</PathWithFileName>
       <FilenameWithoutPath>bsp_uart.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>

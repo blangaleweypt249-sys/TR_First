@@ -67,6 +67,8 @@ void Error_Handler(void);
 #define right_air_GPIO_Port GPIOA
 #define left_jiazhua_Pin GPIO_PIN_9
 #define left_jiazhua_GPIO_Port GPIOA
+#define W5500_CS_Pin GPIO_PIN_15
+#define W5500_CS_GPIO_Port GPIOA
 #define right_realair_Pin GPIO_PIN_10
 #define right_realair_GPIO_Port GPIOC
 #define left_realair_Pin GPIO_PIN_11
@@ -89,8 +91,6 @@ void Error_Handler(void);
 #define right_jia_GPIO_Port GPIOB
 #define front_leg_Pin GPIO_PIN_7
 #define front_leg_GPIO_Port GPIOB
-#define W5500_CS_Pin GPIO_PIN_15
-#define W5500_CS_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
 

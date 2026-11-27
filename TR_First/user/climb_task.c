@@ -49,7 +49,7 @@ void ClimbTask(void *argument)
             if (up_distance > 9.0f)
                 up_distance = 0.0f;
             else
-                up_distance = 14.0f;
+                up_distance = 15.0f;
         }
 
         //PE6 前腿伸 + 后腿20
@@ -90,9 +90,9 @@ void ClimbTask(void *argument)
             Leg_Front(0);//前腿收回
         }
 
-        if (handle_key[eKeyDown1].key)
+        if (handle_key[eKeyOmni5].key)      //PD7 五位开关上：前进
             speed = 0.5f;
-        else if (handle_key[eKeyDown2].key)
+        else if (handle_key[eKeyOmni3].key) //PD5 五位开关下：后退
             speed = -0.5f;
         else
             speed = 0.0f;

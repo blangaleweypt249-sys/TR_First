@@ -57,6 +57,9 @@ void Imu_Calc(void)
     static float speed_hist[3];
     static uint8_t speed_idx;   //写指针 0..2
     static uint8_t speed_n;     //已经填了几个
+    static float still_buf[32];//约 16ms，判静止用
+    static uint8_t still_idx;
+    static uint8_t still_n;
     float a, b, c, gyro_speed = imu_100A.gyro_speed - imu_100A.basic_speed;
 
     if (!has_last_speed)
@@ -82,9 +85,31 @@ void Imu_Calc(void)
             gyro_speed = (a > c) ? a : ((b > c) ? c : b);
     }
 
-    //静置时慢跟零偏，温度漂了也跟得住
-    if (fabsf(gyro_speed) < 0.05f)
-        imu_100A.basic_speed += gyro_speed * 0.0005f;
+    //静止检测：短窗口峰峰值小才跟零偏；微动时窗口被打散，自动不跟
+    still_buf[still_idx] = imu_100A.gyro_speed;
+    still_idx = (uint8_t)((still_idx + 1U) % 32U);
+    if (still_n < 32U)
+    {
+        still_n++;
+    }
+    else
+    {
+        float win_min = still_buf[0];
+        float win_max = still_buf[0];
+        float win_sum = 0.0f;
+
+        for (uint8_t i = 0U; i < 32U; i++)
+        {
+            if (still_buf[i] < win_min)
+                win_min = still_buf[i];
+            if (still_buf[i] > win_max)
+                win_max = still_buf[i];
+            win_sum += still_buf[i];
+        }
+
+        if ((win_max - win_min) < 0.05f)//噪声只有 0.003，峰峰值小于 0.05 才算真没动
+            imu_100A.basic_speed += (win_sum / 32.0f - imu_100A.basic_speed) * 0.0005f;//τ 约 1 秒
+    }
 
     if (fabsf(gyro_speed) < 0.03f)
         gyro_speed = 0.0f;

@@ -3,7 +3,6 @@
 
 // 标零标志位(1时停止运控手动摆好)
 uint8_t arm_set_home;
-volatile uint8_t Motor_cnt;      //RS 电机上电发一帧，6 帧到齐说明 6 台都起来了
 volatile uint8_t M5010_pos_flag; //200ms 读一次大臂位置
 // 调试滑台位置用
 float slide_pos;
@@ -20,6 +19,9 @@ static uint16_t end_interp_ms[2];                        // 末端插值时间�
 static Arm_Stage ground_home[2];                         // 吸地面1层块回零分段：0 左臂 1 右臂
 static Arm_Stage store_wait;                             // 存天空块分段：0 空闲 1 进入等稳 2 进入等 1 秒 3 进入等 0.5 秒 4 退出等稳 5 退出等 1 秒
 static Arm_Stage put_wait;                               // PE0 右臂放置分段：0 空闲 1 等 5010/RS00 稳住
+static Arm_Stage left_store;                             // 左臂存块分段：0 空闲 1 等到位 2 存块等 100ms 3 取出等 1 秒 4 回零后等 1 秒
+static uint8_t left_store_takeout = 1U;                  // 左臂存块奇偶：0 存 1 取出；初值 1 让第一次按下翻转成存
+static void Arm_LeftStoreStage(void);
 static Arm *const arm_list[2] = {&left_arm, &right_arm}; // 按 id 索引
 // 吸块位置：前 4 个左臂、后 4 个右臂
 // 吸取1层地块(从前面抓)
@@ -57,15 +59,15 @@ const float store_sky_pos[4] =
 // 竖直放置等待
 const float vertical_pos[8] =
 {
-    -83.0f, -0.5f, -0.045f, 0.32f,
-    67.0f, 0.68f, -1.4f, 2.00f,
+    -143.0f, -0.35f, -0.00f,  1.48f,
+    103.0f, 1.8f, -1.4f, 2.00f,
 };
 
 // 竖直放置
 const float vertical_put_pos[8] =
 {
-    -145.0f, -0.5f, -0.00f,  1.31f,
-    105.0f, 1.8f, -1.6f, -1.34f,
+    -143.0f, -0.35f, -0.00f,  1.48f,
+    103.0f, 1.8f, -1.6f, -1.34f,
 };
 
 // 吸取二层地块 1
@@ -75,10 +77,10 @@ const float layer2_pos[8] =
     70.0f, 0.65f, 0.0f, 0.75f,
 };
 
-// 左臂取二层 1
-const float left_layer2_pos[4] =
+// 左臂存块位：先写 0 号位，数值待标定
+const float left_store_pos[4] =
 {
-    -81.8f, -0.56f, -0.045f, 0.17f,
+    0.0f, -0.6f, 0.0f, 1.9f,
 };
 
 // TIM7 每 10ms 调一次，只置读位置标志，CAN 帧在 ArmTask 里发
@@ -113,7 +115,7 @@ void Arm_Send(Arm *arm)
     uint32_t t_ms = end_interp_ms[arm->id];
 
     MG5010E_SpeedPos(&arm->joint1, arm->target[0], 17.0f);
-    RS00_Mit(&arm->joint2, 0, arm->target[1], 0, 27, 4, 0, 0);
+    RS00_Mit(&arm->joint2, 0, arm->target[1], 0, 50, 7, 0, 0);
 
     // 竖直排列：按开关决定末端 3、4 关节走不走插值，别的场合直接下发
     RS05_Mit(&arm->joint3, 0, arm->target[2], 0, 18, 2, (mask & 0x01U) ? 1U : 0U, t_ms);
@@ -171,7 +173,7 @@ void Arm_Off(Arm *arm)
     HAL_GPIO_WritePin(arm->vac_port, arm->vac_pin, GPIO_PIN_RESET);
 }
 
-// 0 全关 1 吸取 2 放下
+// 0 全关 1 吸取 2放下
 void Arm_Suction(Arm *arm, uint8_t cmd)
 {
     arm->suction = cmd;
@@ -213,7 +215,6 @@ static void Sky_Suction(uint8_t cmd)
 }
 
 // 等两个关节稳住：5010 看 joint1，RS 看 joint2 或 joint3；
-// 连续 20 拍没动算稳，超时 3 秒也算稳，免得卡死
 static uint8_t Arm_WaitStill(Arm *arm, Arm_Stage *wait, uint8_t rs_joint, uint8_t check_end)
 {
     float rs_pos = (rs_joint == 3U) ? arm->joint3.feedback.pos_fed : arm->joint2.feedback.pos_fed;
@@ -314,7 +315,6 @@ static void Arm_GroundStage(void)
 
             arm_list[i]->target[2] = 0.0f; // 末端再回零
             arm_list[i]->target[3] = 0.0f;
-            Arm_Interp(arm_list[i], 0U, 500U);
 
             ground_home[i].still = 0U;
             ground_home[i].last1 = arm_list[i]->joint1.pos;
@@ -350,7 +350,7 @@ static void Arm_PutStage(void)
     put_wait.stage = 0U;
     right_arm.target[2] = vertical_put_pos[6];
     right_arm.target[3] = vertical_put_pos[7];
-    Arm_Interp(&right_arm, 4U, 800U); // 只第 4 关节走 0.8 秒
+    Arm_Interp(&right_arm, 0U, 1500U); // 末端 3、4 关节走 1.5 秒
 }
 
 //三个分段状态机每拍走一次
@@ -359,6 +359,7 @@ void Arm_StageTick(void)
     Arm_GroundStage();
     Arm_PutStage();
     Arm_StoreSkyStage();
+    Arm_LeftStoreStage();
 }
 
 void Up_Init(void)
@@ -510,11 +511,6 @@ void Arm_HomeAll(void)
         suction_off_flag = 0U; // 不许那个100毫秒全关再动气泵
         up_state = eUpIdle;
     }
-
-    if (up_state == eUpVertical) // 竖直排列回零就退
-    {
-        up_state = eUpIdle;
-    }
 }
 
 //存天空块：进去，等右臂稳住再吸
@@ -528,7 +524,6 @@ void Arm_EnterStoreSky(void)
     store_wait.tick = HAL_GetTick();
 
     Arm_MoveTo(&right_arm, store_sky_pos);
-    Arm_Interp(&right_arm, 4U, 800U); // 第 4 关节走 0.8 秒
 }
 
 //存天空块：退出，回存块位吸住，稳了放开上吸盘，再 1.5 秒回零
@@ -541,25 +536,22 @@ void Arm_ExitStoreSky(void)
     store_wait.tick = HAL_GetTick();
 
     Arm_MoveTo(&right_arm, store_sky_pos);
-    Arm_Interp(&right_arm, 4U, 800U); // 第 4 关节走 0.8 秒
     Arm_Suction(&right_arm, 1U);
 }
 
-//竖直排列预备：两臂末端 3、4 关节走 1 秒插值
+//竖直排列预备：右臂末端 3、4 关节走 1.5 秒插值
 void Arm_EnterVertical(void)
 {
-    up_state = eUpVertical;
-    Arm_Interp(&left_arm, 0U, 1000U);
-    Arm_Interp(&right_arm, 0U, 1000U);
+    Arm_Interp(&right_arm, 0U, 1500U);
 
     Arm_MoveTo(&left_arm, &vertical_pos[0]);
     Arm_MoveTo(&right_arm, &vertical_pos[4]);
 }
 
-//竖直放置：左臂直接下发
+//竖直放置：左臂末端 3、4 关节走 1.5 秒插值
 void Arm_PreparePutLeft(void)
 {
-    end_interp[0] = 0U;
+    Arm_Interp(&left_arm, 0U, 1500U);
     Arm_MoveTo(&left_arm, &vertical_put_pos[0]);
 }
 
@@ -593,4 +585,88 @@ void Arm_Suction_Toggle(void)
     }
 
     Arm_Suction(&right_arm, left_arm.suction); // 右臂跟着左臂切，存块状态也要能关
+}
+
+//左臂存块/取出：奇数次存、偶数次取出，只动左臂
+void Arm_LeftStore_Toggle(void)
+{
+    left_store_takeout = !left_store_takeout;
+
+    left_store.stage = 1U;
+    left_store.still = 0U;
+    left_store.last1 = left_arm.joint1.pos;
+    left_store.last2 = left_arm.joint2.feedback.pos_fed;
+    left_store.tick = HAL_GetTick();
+
+    Arm_MoveTo(&left_arm, left_store_pos);
+    HAL_GPIO_WritePin(up_jia_GPIO_Port, up_jia_Pin, GPIO_PIN_SET);//一按下就置高，打开夹爪
+}
+
+static void Arm_LeftStoreStage(void)
+{
+    if (left_store.stage == 0U)
+    {
+        return;
+    }
+
+    if (left_store.stage == 1U)//等左臂到存块位
+    {
+        if (Arm_WaitStill(&left_arm, &left_store, 2U, 0U) == 0U)
+        {
+            return;
+        }
+
+        if (left_store_takeout == 0U)//存：关吸盘开真空阀放块，再关夹爪
+        {
+            Arm_Suction(&left_arm, 2U);
+            HAL_GPIO_WritePin(up_jia_GPIO_Port, up_jia_Pin, GPIO_PIN_RESET);//低电平关夹爪
+            left_store.tick = HAL_GetTick();
+            left_store.stage = 2U;
+        }
+        else//取：开吸盘吸住，再打开夹爪
+        {
+            Arm_Suction(&left_arm, 1U);
+            HAL_GPIO_WritePin(up_jia_GPIO_Port, up_jia_Pin, GPIO_PIN_SET);//高电平打开夹爪
+            left_store.tick = HAL_GetTick();
+            left_store.stage = 3U;
+        }
+        return;
+    }
+
+    if (left_store.stage == 2U)//存：100ms 后回零，再重新吸住
+    {
+        if (HAL_GetTick() - left_store.tick < 100U)
+        {
+            return;
+        }
+
+        Arm_Home(&left_arm);
+        Arm_Suction(&left_arm, 1U);//回零后重新打开吸盘
+        left_store.stage = 0U;
+        return;
+    }
+
+    if (left_store.stage == 3U)//取出：1 秒后回零
+    {
+        if (HAL_GetTick() - left_store.tick < 1000U)
+        {
+            return;
+        }
+
+        Arm_Home(&left_arm);
+        left_store.tick = HAL_GetTick();
+        left_store.stage = 4U;
+        return;
+    }
+
+    if (left_store.stage == 4U)//取出：回零 1 秒后关 PD0
+    {
+        if (HAL_GetTick() - left_store.tick < 1000U)
+        {
+            return;
+        }
+
+        HAL_GPIO_WritePin(up_jia_GPIO_Port, up_jia_Pin, GPIO_PIN_RESET);//PD0 低电平关闭夹爪
+        left_store.stage = 0U;
+    }
 }

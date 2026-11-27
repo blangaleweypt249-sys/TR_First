@@ -45,6 +45,6 @@ tr_first/bsp_can.o: ..\user\bsp_can.c ..\user\bsp_can.h \
   ..\Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS_V2\cmsis_os.h \
   ..\Drivers\CMSIS\RTOS2\Include\cmsis_os2.h ..\user\Up_control.h \
   ..\user\RS00.h ..\user\mymain.h ..\Core\Inc\usart.h ..\Core\Inc\spi.h \
-  ..\bsp\bsp_uart.h ..\app\init_task.h ..\user\Handle.h \
-  ..\app\status_task.h ..\user\imu_100A.h ..\user\dt35.h \
+  ..\user\bsp_uart.h ..\user\init_task.h ..\user\Handle.h \
+  ..\user\status_task.h ..\user\imu_100A.h ..\user\dt35.h \
   ..\user\STP_23L.h ..\user\w25q128.h ..\user\RS05.h ..\user\MG5010E.h

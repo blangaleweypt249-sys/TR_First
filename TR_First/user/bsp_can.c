@@ -166,9 +166,6 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
                 }
                 else//RS 电机扩展帧
                 {
-                    if (rx_header.Identifier == 0x00007FFEU && Motor_cnt < 6U)
-                        Motor_cnt++;//每台电机上电发一帧，6 帧到齐说明 6 台都起来了
-
                     RS00_ReadData(&left_arm.joint2, rx_data, &rx_header);
                     RS00_ReadData(&right_arm.joint2, rx_data, &rx_header);
                     RS05_ReadData(&left_arm.joint3, rx_data, &rx_header);

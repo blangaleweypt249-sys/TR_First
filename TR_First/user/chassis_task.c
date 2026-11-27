@@ -17,6 +17,18 @@ static void car_angle_key(void)
     shoulder_last = (uint8_t)((handle_data.shoulder[0] == 1U) | ((handle_data.shoulder[1] == 1U) << 1));
 }
 
+//PA5 开关切高低速：默认高速 0.0045，切一次 0.0010，再切回 0.0045
+static void chassis_speed_key(void)
+{
+    static uint8_t low_speed;
+
+    if (Handle_KeyChange(eKeyUp2))
+    {
+        low_speed = !low_speed;
+        speed_k = low_speed ? 0.0010f : 0.0045f;
+    }
+}
+
 void ChassisTask(void *argument)
 {
     static uint32_t tick;
@@ -30,6 +42,8 @@ void ChassisTask(void *argument)
 
     for (;;)
     {
+        chassis_speed_key();//PA5 高低速
+
         //锁车或者与遥控失联(PA6锁车)
         if (handle_lock)
         {

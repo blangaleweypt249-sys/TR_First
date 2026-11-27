@@ -44,6 +44,6 @@ tr_first/rs05.o: ..\user\RS05.c ..\user\RS05.h ..\user\vesc.h \
   ..\user\helm_chassis.h ..\user\pid.h ..\user\DJI.h ..\user\WpLib.h \
   ..\user\Leg.h \
   ..\Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS_V2\cmsis_os.h \
-  ..\Drivers\CMSIS\RTOS2\Include\cmsis_os2.h ..\bsp\bsp_uart.h \
-  ..\app\init_task.h ..\user\Handle.h ..\app\status_task.h \
+  ..\Drivers\CMSIS\RTOS2\Include\cmsis_os2.h ..\user\bsp_uart.h \
+  ..\user\init_task.h ..\user\Handle.h ..\user\status_task.h \
   ..\user\imu_100A.h ..\user\dt35.h ..\user\STP_23L.h ..\user\w25q128.h

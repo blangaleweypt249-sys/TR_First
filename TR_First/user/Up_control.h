@@ -36,7 +36,6 @@ typedef enum
     eUpStoreSky,        //存天空块
     eUpStoreSky2,       //存两个天空块
     eUpSuckGround1,     //吸取地面1层块
-    eUpVertical,        //竖直排列
 }Up_State;
 
 //分段动作：等关节 1、2 走稳了再放末端，末端也稳了算完
@@ -52,11 +51,9 @@ typedef struct
 extern Arm left_arm;
 extern Arm right_arm;
 extern Up_State up_state;
-extern volatile uint8_t Motor_cnt;       //RS 电机上电帧计数，6 帧到齐说明都启动好了
 extern uint8_t arm_set_home;             //1 时只标零，不发运动指令
 extern volatile uint8_t M5010_pos_flag;  //200ms 读一次大臂位置
 extern float slide_pos;                  //右臂底座滑台目标
-extern osSemaphoreId_t Reboot_motorHandle;          
 
 //机械臂姿态表：前 4 个左臂、后 4 个右臂，单位 度 / 弧度
 extern const float suck_block_pos[8];
@@ -67,7 +64,7 @@ extern const float store_sky_pos[4];
 extern const float vertical_pos[8];
 extern const float vertical_put_pos[8];
 extern const float layer2_pos[8];
-extern const float left_layer2_pos[4];
+extern const float left_store_pos[4];
 
 void Up_Init(void);
 void Arm_StageTick(void);                   //三个分段状态机，任务每拍调一次
@@ -90,6 +87,7 @@ void Arm_EnterVertical(void);               //竖直排列预备
 void Arm_PreparePutLeft(void);              //竖直放置：左臂
 void Arm_PreparePutRight(void);             //竖直放置：右臂，先只走 1、2 关节
 void Arm_Suction_Toggle(void);              //左右气路一起切
+void Arm_LeftStore_Toggle(void);            //左臂存块/取出，按一次存再按一次取出
 void Arm_PollTimer(void);                   //TIM7 回调里调，置读位置标志
 
 #endif

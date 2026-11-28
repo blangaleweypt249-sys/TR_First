@@ -15,6 +15,7 @@
 #include "vesc.h"
 #include "DJI.h"
 #include "helm_chassis.h"
+#include "chassis_task.h"
 #include "status_task.h"
 #include "Leg.h"
 #include "imu_100A.h"

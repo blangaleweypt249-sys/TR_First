@@ -11,11 +11,10 @@ Arm left_arm;
 Arm right_arm;
 Up_State up_state;
 
-static uint8_t suction_off_flag; // 放下之后等一会全关
+static uint8_t suction_off_flag;                         // 放下之后等一会全关
 static uint32_t suction_off_tick;
-static uint8_t sky_suction;                              // 上吸盘状态：0 关 1 吸 2 放
-static uint8_t end_interp[2];                            // 末端插值开关：0 左臂 1 右臂，bit0 关节3 bit1 关节4
-static uint16_t end_interp_ms[2];                        // 末端插值时间，0 左臂 1 右臂
+static uint8_t up_suction_flag;                          // 上吸盘状态：0 关 1 吸 2 放
+static uint8_t vert_hold[2];                             // 1 = 这一臂在竖直动作，关节2 换大 kp
 static Arm_Stage ground_home[2];                         // 吸地面1层块回零分段：0 左臂 1 右臂
 static Arm_Stage store_wait;                             // 存天空块分段：0 空闲 1 进入等稳 2 进入等 1 秒 3 进入等 0.5 秒 4 退出等稳 5 退出等 1 秒
 static Arm_Stage put_wait;                               // PE0 右臂放置分段：0 空闲 1 等 5010/RS00 稳住
@@ -27,14 +26,14 @@ static Arm *const arm_list[2] = {&left_arm, &right_arm}; // 按 id 索引
 // 吸取1层地块(从前面抓)
 const float suck_block_pos[8] =
 {
-    -150.0f, -0.95f, -0.00f,  0.98f,
-    138.0f,  1.15f, 0.0f, 1.4f,
+    -150.0f, -1.08f, -0.00f,  0.95f,
+    138.0f,  1.16f, -0.00f, 1.32f,
 };
 
 // 吸球位置：只有左臂动
 const float suck_ball_pos[4] =
 {
-    -66.0f, -0.73f, -0.123f, -1.05f,
+    -66.0f, -0.73f, -0.00f, -1.05f,
 };
 
 // 取球完毕：只有左臂动 1
@@ -46,8 +45,8 @@ const float ball_done_pos[4] =
 // 取两个天空块(横着吸) 1 左臂稍微往右一点吸取
 const float sky_block_pos[8] =
 {
-    -163.0f, -1.0f, 0.05f, 1.18f,
-    151.0f, 1.13f, -0.009f, 1.6f,
+    -163.0f, -1.0f, 0.05f, 1.2f,
+    151.0f, 1.05f, -0.009f, 1.55f,
 };
 
 // 存天空块(右臂动)
@@ -60,21 +59,21 @@ const float store_sky_pos[4] =
 const float vertical_pos[8] =
 {
     -143.0f, -0.35f, -0.00f,  1.48f,
-    103.0f, 1.8f, -1.4f, 2.00f,
+    103.0f, 1.58f, -1.4f, 2.00f,
 };
 
 // 竖直放置
 const float vertical_put_pos[8] =
 {
     -143.0f, -0.35f, -0.00f,  1.48f,
-    103.0f, 1.8f, -1.6f, -1.34f,
+    103.0f, 1.58f, -1.6f, -1.34f,
 };
 
 // 吸取二层地块 1
 const float layer2_pos[8] =
 {
-    -83.0f, -0.5f, -0.045f, 0.32f,
-    70.0f, 0.65f, 0.0f, 0.75f,
+    -85.8f, -0.62f, -0.045f, 0.31f,
+    72.5f, 0.6f, 0.0f, 0.75f,
 };
 
 // 左臂存块位：先写 0 号位，数值待标定
@@ -95,56 +94,116 @@ void Arm_PollTimer(void)
     }
 }
 
-// 末端插值：joint 传 3 或 4 只插那个关节，传 0 是 3、4 一起，走完自己关
-static void Arm_Interp(Arm *arm, uint8_t joint, uint16_t ms)
+// 插值时长按位置误差算：五次多项式峰值速度是 1.875*Δ/T，
+// 按 2.7rad/s 算 T(ms)=700*Δ，再限在 0.25~1.5 秒
+static uint32_t Arm_InterpMs(float err)
 {
-    if (joint == 3U)
-        end_interp[arm->id] = 0x01U;
-    else if (joint == 4U)
-        end_interp[arm->id] = 0x02U;
-    else
-        end_interp[arm->id] = 0x03U;
+    uint32_t t_ms = (uint32_t)(900.0f * fabsf(err));
 
-    end_interp_ms[arm->id] = ms;
+    if (t_ms < 250U)
+        t_ms = 250U;
+
+    if (t_ms > 1500U)
+        t_ms = 1500U;
+
+    return t_ms;
 }
 
-// 一个臂 4 个关节串着发，5010 和 RS 中间不等待
-void Arm_Send(Arm *arm)
+// 关节当前位置：索引 0~3
+static float Arm_JointPos(Arm *arm, uint8_t i)
 {
-    uint8_t mask = end_interp[arm->id];
-    uint32_t t_ms = end_interp_ms[arm->id];
+    if (i == 0U)
+        return arm->joint1.pos;
+    if (i == 1U)
+        return arm->joint2.feedback.pos_fed;
+    if (i == 2U)
+        return arm->joint3.feedback.pos_fed;
 
-    MG5010E_SpeedPos(&arm->joint1, arm->target[0], 17.0f);
-    RS00_Mit(&arm->joint2, 0, arm->target[1], 0, 50, 7, 0, 0);
-
-    // 竖直排列：按开关决定末端 3、4 关节走不走插值，别的场合直接下发
-    RS05_Mit(&arm->joint3, 0, arm->target[2], 0, 18, 2, (mask & 0x01U) ? 1U : 0U, t_ms);
-    RS05_Mit(&arm->joint4, 0, arm->target[3], 0, 25, 2, (mask & 0x02U) ? 1U : 0U, t_ms);
-
-    // 走完就把对应的位关掉
-    if ((mask & 0x01U) != 0U && !arm->joint3.mit.position_interpolation.state)
-        mask &= 0xFEU;
-
-    if ((mask & 0x02U) != 0U && !arm->joint4.mit.position_interpolation.state)
-        mask &= 0xFDU;
-
-    end_interp[arm->id] = mask;
+    return arm->joint4.feedback.pos_fed;
 }
 
-void Arm_MoveTo(Arm *arm, const float *pos)
+// 只改目标：清掉插值和竖直刚度，不启动插值
+static void Arm_SetTarget(Arm *arm, const float *pos)
 {
+    vert_hold[arm->id] = 0U;
+    arm->interp.mask = 0U;
     arm->target[0] = pos[0];
     arm->target[1] = pos[1];
     arm->target[2] = pos[2];
     arm->target[3] = pos[3];
 }
 
+// 掩码置位的关节按误差插值到 pos，其余关节直接到位
+static void Arm_InterpTo(Arm *arm, const float *pos, uint8_t mask)
+{
+    float err = 0.0f;
+
+    Arm_SetTarget(arm, pos);
+
+    for (uint8_t i = 0U; i < 4U; i++)
+    {
+        float cur, e;
+
+        if (((mask >> i) & 0x01U) == 0U)
+            continue;
+
+        cur = Arm_JointPos(arm, i);
+        Interpolation_Init(&arm->interp.joint[i]);//从现在这一拍重新起曲线
+        arm->interp.last[i] = cur;
+
+        e = fabsf(pos[i] - cur);
+        if (i == 0U)//关节1 是度，换成弧度和其它关节比
+            e *= PI / 180.0f;
+
+        if (e > err)
+            err = e;
+    }
+
+    arm->interp.ms = Arm_InterpMs(err);
+    arm->interp.mask = mask;
+}
+
+// 一个臂 4 个关节串着发：先按掩码把目标插值到这一拍的位置，再依次下发
+void Arm_Send(Arm *arm)
+{
+    float cmd[4];
+    uint8_t mask = arm->interp.mask;
+
+    for (uint8_t i = 0U; i < 4U; i++)
+    {
+        cmd[i] = Interpolation_PositionCommand(&arm->interp.joint[i], arm->interp.last[i],
+                                               arm->target[i],
+                                               (mask >> i) & 0x01U, arm->interp.ms);
+        arm->interp.last[i] = cmd[i];
+
+        //这一路走完就把对应的位清掉
+        if (((mask >> i) & 0x01U) != 0U && !arm->interp.joint[i].state)
+            mask &= (uint8_t)~(1U << i);
+    }
+    arm->interp.mask = mask;
+
+    MG5010E_SpeedPos(&arm->joint1, cmd[0], 17.0f);
+
+    //竖直动作里右臂关节2 换现在这套 kp/kd，其他动作和回零都用旧参数 27/4
+    RS00_Mit(&arm->joint2, 0, cmd[1], 0,
+             vert_hold[arm->id] ? 50.0f : 27.0f, vert_hold[arm->id] ? 5.0f : 4.0f, 0, 0);
+
+    RS05_Mit(&arm->joint3, 0, cmd[2], 0, 18, 2, 0, 0);
+    RS05_Mit(&arm->joint4, 0, cmd[3], 0, 25, 2, 0, 0);
+}
+
+//改目标：直接到位，不插值
+void Arm_MoveTo(Arm *arm, const float *pos)
+{
+    Arm_SetTarget(arm, pos);
+}
+
+//回零：直接到 0，不插值
 void Arm_Home(Arm *arm)
 {
-    arm->target[0] = 0.0f;
-    arm->target[1] = 0.0f;
-    arm->target[2] = 0.0f;
-    arm->target[3] = 0.0f;
+    float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+    Arm_SetTarget(arm, zero);
 }
 
 void Arm_SuckBlock(Arm *arm)
@@ -195,7 +254,7 @@ void Arm_Suction(Arm *arm, uint8_t cmd)
 // 上吸盘：0 全关 1 吸取(开气泵关真空阀) 2 放下(关气泵开真空阀)
 static void Sky_Suction(uint8_t cmd)
 {
-    sky_suction = cmd;
+    up_suction_flag = cmd;
 
     if (cmd == 1U)
     {
@@ -222,7 +281,7 @@ static uint8_t Arm_WaitStill(Arm *arm, Arm_Stage *wait, uint8_t rs_joint, uint8_
     // 5010 单位度、RS00/RS05 单位弧度，一拍变化小于这个只当没动
     if (fabsf(arm->joint1.pos - wait->last1) < 0.05f &&
         fabsf(rs_pos - wait->last2) < 0.002f &&
-        (check_end == 0U || !arm->joint4.mit.position_interpolation.state))
+        (check_end == 0U || arm->interp.mask == 0U))
         wait->still++;
     else
         wait->still = 0U;
@@ -348,9 +407,7 @@ static void Arm_PutStage(void)
         return;
 
     put_wait.stage = 0U;
-    right_arm.target[2] = vertical_put_pos[6];
-    right_arm.target[3] = vertical_put_pos[7];
-    Arm_Interp(&right_arm, 0U, 1500U); // 末端 3、4 关节走 1.5 秒
+    Arm_InterpTo(&right_arm, &vertical_put_pos[4], 0x0CU);//末端 3、4 关节插值过去
 }
 
 //三个分段状态机每拍走一次
@@ -377,9 +434,9 @@ void Up_Init(void)
     MG5010E_ClearError(&left_arm.joint1);
     MG5010E_ClearError(&right_arm.joint1);
 
-    // 关节2 大臂第二个电机，左右交错着来
-    RS00_Init(&left_arm.joint2, arm_set_home, &hfdcan3, 23, mit);
-    RS00_Init(&right_arm.joint2, arm_set_home, &hfdcan3, 40, mit);
+    // 关节2 大臂第二个电机，防止鬼蓄标零
+    RS00_Init(&left_arm.joint2, 1, &hfdcan3, 23, mit);
+    RS00_Init(&right_arm.joint2, 1, &hfdcan3, 40, mit);
 
     // 关节3 小臂 / 关节4 腕
     RS05_Init(&left_arm.joint3, arm_set_home, &hfdcan3, 14, mit);
@@ -463,7 +520,7 @@ void Arm_Suction_Off(void)
         if (right_arm.suction == 2U)
             Arm_Suction(&right_arm, 0U);
 
-        if (sky_suction == 2U) // 上吸盘同理
+        if (up_suction_flag == 2U) // 上吸盘同理
             Sky_Suction(0U);
     }
 }
@@ -487,16 +544,20 @@ void Arm_HomeAll(void)
     {
         for (uint8_t i = 0; i < 2U; i++)
         {
+            float pos[4];
+
             ground_home[i].stage = 1U;
             ground_home[i].still = 0U;
             ground_home[i].last1 = arm_list[i]->joint1.pos;
             ground_home[i].last2 = arm_list[i]->joint2.feedback.pos_fed;
             ground_home[i].tick = HAL_GetTick();
 
-            arm_list[i]->target[0] = 0.0f;
-            arm_list[i]->target[1] = 0.0f;
-            arm_list[i]->target[2] = arm_list[i]->joint3.feedback.pos_fed; // 末端先保持
-            arm_list[i]->target[3] = arm_list[i]->joint4.feedback.pos_fed;
+            pos[0] = 0.0f;
+            pos[1] = 0.0f;
+            pos[2] = arm_list[i]->joint3.feedback.pos_fed;//末端先保持
+            pos[3] = arm_list[i]->joint4.feedback.pos_fed;
+
+            Arm_SetTarget(arm_list[i], pos);//回零直接到位，不插值
         }
     }
     else
@@ -539,34 +600,39 @@ void Arm_ExitStoreSky(void)
     Arm_Suction(&right_arm, 1U);
 }
 
-//竖直排列预备：右臂末端 3、4 关节走 1.5 秒插值
+//竖直排列预备：右臂关节2 和末端都按误差插值，到位后关节2 靠大 kp 保持
 void Arm_EnterVertical(void)
 {
-    Arm_Interp(&right_arm, 0U, 1500U);
-
     Arm_MoveTo(&left_arm, &vertical_pos[0]);
-    Arm_MoveTo(&right_arm, &vertical_pos[4]);
+    Arm_InterpTo(&right_arm, &vertical_pos[4], 0x0EU);//右臂 2、3、4 关节一起按误差插值
+
+    vert_hold[right_arm.id] = 1U;
 }
 
-//竖直放置：左臂末端 3、4 关节走 1.5 秒插值
+//竖直放置：左臂 2、3、4 关节按误差插值
 void Arm_PreparePutLeft(void)
 {
-    Arm_Interp(&left_arm, 0U, 1500U);
-    Arm_MoveTo(&left_arm, &vertical_put_pos[0]);
+    Arm_InterpTo(&left_arm, &vertical_put_pos[0], 0x0EU);
 }
 
-//竖直放置：右臂先只让 1、2 关节走，末端保持原目标，等 1、2 稳住了再放
+//竖直放置：右臂先只让 2 关节插值走，末端保持原目标，等 1、2 稳住了再放
 void Arm_PreparePutRight(void)
 {
-    end_interp[1] = 0U;
+    float pos[4];
+
+    pos[0] = vertical_put_pos[4];
+    pos[1] = vertical_put_pos[5];
+    pos[2] = right_arm.joint3.feedback.pos_fed;//末端先保持
+    pos[3] = right_arm.joint4.feedback.pos_fed;
+
+    Arm_InterpTo(&right_arm, pos, 0x02U);//先只让关节2 插值
+    vert_hold[right_arm.id] = 1U;
+
     put_wait.stage = 1U;
     put_wait.still = 0U;
     put_wait.last1 = right_arm.joint1.pos;
     put_wait.last2 = right_arm.joint2.feedback.pos_fed;
     put_wait.tick = HAL_GetTick();
-
-    right_arm.target[0] = vertical_put_pos[4];
-    right_arm.target[1] = vertical_put_pos[5];
 }
 
 //左右气路一起切：吸着就放下，否则吸

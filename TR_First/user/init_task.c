@@ -23,7 +23,9 @@ static void Periph_Init(void)
 
     Leg_Init();
 
-    pid_init(&pid_CarAnale, 0.0f, 8.5f, 0.00f, 0.0f, 5.0f, 0.0f, 0.01f);
+    pid_init(&pid_CarAnale, 0.0f, 8.5f, 0.3f, 0.2f, 6.0f, 1.0f, 0.02f);
+    //左侧 DT35 定距：pid 输出是 mm/s，函数里再除 1000 变 m/s
+    pid_init(&pid_dt35_left, 0.2f, 5.0f, 0.00f, 0.00f, 3000.0f, 10.0f, 3.0f);
 
     W25Q128_Init(&w25q128, &hspi6, SPI6_NSS_GPIO_Port, SPI6_NSS_Pin);
 

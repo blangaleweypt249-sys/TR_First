@@ -7,6 +7,16 @@
 #include "RS00.h"
 #include "RS05.h"
 #include "MG5010E.h"
+#include "Interpolation.h"
+
+//每条臂一份插值设置：4 位掩码选关节，一个统一时长，4 个关节各一份 S 曲线状态
+typedef struct
+{
+    uint8_t mask;               //bit0 关节1 bit1 关节2 bit2 关节3 bit3 关节4，1 走插值
+    uint16_t ms;                //本次动作统一时长
+    Interpolation_t joint[4];
+    float last[4];              //上一拍下发的位置，下次插值的起点
+}Arm_Interp;
 
 //机械臂，一台臂 4 个关节 + 末端气路
 typedef struct
@@ -21,6 +31,7 @@ typedef struct
     uint8_t has_slide;
 
     float target[4];        //关节1~4 目标：第 1 个度，后 3 个弧度
+    Arm_Interp interp;
     uint8_t suction;        //0 关 1 吸 2 放
 
     GPIO_TypeDef *pump_port;    //气泵

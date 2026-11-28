@@ -20,6 +20,15 @@ DT35_Move *dt35_list[4] =
     &dt35_right
 };
 
+//一阶低通：DT35 读数本身在抖，直接喂 PID 会把车推得来回晃
+static float dt35_smooth(DT35_Move *dt35, float raw)
+{
+    if (dt35->dt35_num[0] == 0)//第一帧直接用，别从 0 慢慢爬上去
+        return raw;
+
+    return dt35->actual_dt35_distance + (raw - dt35->actual_dt35_distance) * 0.2f;
+}
+
 void DT35_Analysis(uint8_t *data)
 {
     uint16_t crc = 0;
@@ -35,10 +44,10 @@ void DT35_Analysis(uint8_t *data)
             {
                 distance.u8[i - 1] = data[i];
             }
-            dt35_front.actual_dt35_distance = distance.flo[0];
-            dt35_left.actual_dt35_distance = distance.flo[1];
-            dt35_back.actual_dt35_distance = distance.flo[2];   //还没装，固定 0
-            dt35_right.actual_dt35_distance = distance.flo[3];  //还没装，固定 0
+            dt35_front.actual_dt35_distance = dt35_smooth(&dt35_front, distance.flo[0]);
+            dt35_left.actual_dt35_distance = dt35_smooth(&dt35_left, distance.flo[1]);
+            dt35_back.actual_dt35_distance = dt35_smooth(&dt35_back, distance.flo[2]);   //还没装，固定 0
+            dt35_right.actual_dt35_distance = dt35_smooth(&dt35_right, distance.flo[3]);  //还没装，固定 0
 
             // 检查外设连接状态
             for (uint8_t i = 0; i < 4; i++)

@@ -44,7 +44,7 @@ static void Arm_Key(void)
         if (slide_pos > 200.0f)
             slide_pos = 0.0f;
         else
-            slide_pos = 465.0f;
+            slide_pos = 420.0f;
     }
 
     if (Handle_KeyRelease(eKeyDown1)) // PE1 左臂存块，奇数次存、偶数次取出

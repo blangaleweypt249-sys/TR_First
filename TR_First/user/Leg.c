@@ -64,4 +64,3 @@ void Climb_Leg(float distance)
     DJI_Position(&leg_Right, -distance * dis_to_pos);//镜像导致
 }
 
-//腿的硬件操作留在本文件，任务本体挪到 app/climb_task.c

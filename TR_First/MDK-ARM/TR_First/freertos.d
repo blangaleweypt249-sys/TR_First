@@ -54,5 +54,5 @@ tr_first/freertos.o: ..\Core\Src\freertos.c \
   ..\user\vesc.h ..\user\Interpolation.h ..\user\WpLib.h ..\user\Leg.h \
   ..\Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS_V2\cmsis_os.h \
   ..\user\bsp_uart.h ..\user\init_task.h ..\user\Handle.h \
-  ..\user\status_task.h ..\user\imu_100A.h ..\user\dt35.h \
-  ..\user\STP_23L.h ..\user\w25q128.h
+  ..\user\chassis_task.h ..\user\status_task.h ..\user\imu_100A.h \
+  ..\user\dt35.h ..\user\STP_23L.h ..\user\w25q128.h

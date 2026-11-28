@@ -1,5 +1,7 @@
 #include "chassis_task.h"
 #include "mymain.h"
+#include "location_task.h"
+#include "location_task.h"
 
 Speed world_speed;
 Speed body_speed;
@@ -47,28 +49,20 @@ void ChassisTask(void *argument)
         //锁车或者与遥控失联(PA6锁车)
         if (handle_lock)
         {
-            world_speed.vx = 0.0f;
-            world_speed.vy = 0.0f;
-            world_speed.vw = 0.0f;
+            body_speed.vx = 0.0f;
+            body_speed.vy = 0.0f;
+            body_speed.vw = 0.0f;
         }
         else
         {
-            world_speed.vy = handle_value[1] * speed_k;
-            world_speed.vx = handle_value[0] * speed_k;
+             body_speed.vy = handle_value[1] * speed_k;
+             body_speed.vx = handle_value[0] * speed_k;
         }
         car_angle.actual_angle = Imu_angle;
         car_angle_key();
-
-        if (osMessageQueueGet(imuQueueHandle, receive_imu, NULL, 0U) == osOK)
-        {
-            Imu_Analysis(receive_imu);
-        }
-        if (osMessageQueueGet(dt35QueueHandle, receive_dt35, NULL, 0U) == osOK)
-        {
-            DT35_Analysis(receive_dt35);
-        }
-
-        World_to_body(&world_speed, &body_speed, Imu_angle);
+        //if (!handle_lock)
+            //Located_By_Left_DT35(&dt35_left, &world_speed, Imu_angle);//左侧 DT35 定距 500mm
+        //World_to_body(&world_speed, &body_speed, Imu_angle);
         if (!handle_lock)//锁车不跟姿态，helm_calculate 走静止分支
         {
             car_angle_maintain(&body_speed, &car_angle);

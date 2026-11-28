@@ -44,5 +44,6 @@ tr_first/helm_chassis.o: ..\user\helm_chassis.c ..\user\helm_chassis.h \
   ..\Core\Inc\usart.h ..\Core\Inc\spi.h ..\user\bsp_can.h ..\user\Leg.h \
   ..\Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS_V2\cmsis_os.h \
   ..\Drivers\CMSIS\RTOS2\Include\cmsis_os2.h ..\user\bsp_uart.h \
-  ..\user\init_task.h ..\user\Handle.h ..\user\status_task.h \
-  ..\user\imu_100A.h ..\user\dt35.h ..\user\STP_23L.h ..\user\w25q128.h
+  ..\user\init_task.h ..\user\Handle.h ..\user\chassis_task.h \
+  ..\user\status_task.h ..\user\imu_100A.h ..\user\dt35.h \
+  ..\user\STP_23L.h ..\user\w25q128.h
